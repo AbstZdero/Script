@@ -1,6 +1,6 @@
--- Created by MrOrmsman
--- Walkspeed Hub Version
--- No while true used
+-- Walkspeed Hub
+-- With +1 / -1 Buttons
+-- No while true
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -48,15 +48,15 @@ openBtn.Parent = screenGui
 
 -- Main Frame
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 260, 0, 190)
-frame.Position = UDim2.new(0.5, -130, 0.5, -95)
+frame.Size = UDim2.new(0, 270, 0, 220)
+frame.Position = UDim2.new(0.5, -135, 0.5, -110)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.Visible = false
 frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 
--- ===== TITLE (UPDATED) =====
+-- Title
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 35)
 title.BackgroundTransparency = 1
@@ -75,34 +75,59 @@ closeBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
 closeBtn.TextColor3 = Color3.new(1,1,1)
 closeBtn.Parent = frame
 
--- Normal WalkSpeed Toggle
+-- Toggle Button
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0.8, 0, 0, 35)
-toggleBtn.Position = UDim2.new(0.1, 0, 0.3, 0)
+toggleBtn.Position = UDim2.new(0.1, 0, 0.25, 0)
 toggleBtn.Text = "WalkSpeed: OFF"
 toggleBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
 toggleBtn.TextColor3 = Color3.new(1,1,1)
 toggleBtn.Parent = frame
 
--- Loop WalkSpeed Toggle
+-- Loop Button
 local loopBtn = Instance.new("TextButton")
 loopBtn.Size = UDim2.new(0.8, 0, 0, 35)
-loopBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+loopBtn.Position = UDim2.new(0.1, 0, 0.45, 0)
 loopBtn.Text = "Loop WalkSpeed: OFF"
 loopBtn.BackgroundColor3 = Color3.fromRGB(120,0,0)
 loopBtn.TextColor3 = Color3.new(1,1,1)
 loopBtn.Parent = frame
 
--- Speed Input
+-- Speed Input Box
 local speedBox = Instance.new("TextBox")
-speedBox.Size = UDim2.new(0.8, 0, 0, 30)
-speedBox.Position = UDim2.new(0.1, 0, 0.8, 0)
-speedBox.PlaceholderText = "Enter Speed (Press Enter)"
+speedBox.Size = UDim2.new(0.5, 0, 0, 30)
+speedBox.Position = UDim2.new(0.25, 0, 0.7, 0)
+speedBox.Text = tostring(TARGET_SPEED)
 speedBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
 speedBox.TextColor3 = Color3.new(1,1,1)
 speedBox.Parent = frame
 
--- ===== Button Functions =====
+-- + Button
+local plusBtn = Instance.new("TextButton")
+plusBtn.Size = UDim2.new(0, 40, 0, 30)
+plusBtn.Position = UDim2.new(0.8, 0, 0.7, 0)
+plusBtn.Text = "+"
+plusBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
+plusBtn.TextColor3 = Color3.new(1,1,1)
+plusBtn.Parent = frame
+
+-- - Button
+local minusBtn = Instance.new("TextButton")
+minusBtn.Size = UDim2.new(0, 40, 0, 30)
+minusBtn.Position = UDim2.new(0.05, 0, 0.7, 0)
+minusBtn.Text = "-"
+minusBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
+minusBtn.TextColor3 = Color3.new(1,1,1)
+minusBtn.Parent = frame
+
+-- ===== Functions =====
+
+local function updateSpeed()
+	speedBox.Text = tostring(TARGET_SPEED)
+	if humanoid then
+		humanoid.WalkSpeed = TARGET_SPEED
+	end
+end
 
 -- Open / Close
 openBtn.MouseButton1Click:Connect(function()
@@ -113,16 +138,14 @@ closeBtn.MouseButton1Click:Connect(function()
 	frame.Visible = false
 end)
 
--- Normal Toggle
+-- Toggle
 toggleBtn.MouseButton1Click:Connect(function()
 	ENABLED = not ENABLED
 	
 	if ENABLED then
 		toggleBtn.Text = "WalkSpeed: ON"
 		toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-		if humanoid then
-			humanoid.WalkSpeed = TARGET_SPEED
-		end
+		updateSpeed()
 	else
 		toggleBtn.Text = "WalkSpeed: OFF"
 		toggleBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
@@ -132,7 +155,7 @@ toggleBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Loop Toggle (No while true)
+-- Loop Toggle
 loopBtn.MouseButton1Click:Connect(function()
 	LOOP_ENABLED = not LOOP_ENABLED
 	
@@ -156,16 +179,25 @@ loopBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Set Speed
+-- Enter to Set Speed
 speedBox.FocusLost:Connect(function(enterPressed)
 	if enterPressed then
 		local num = tonumber(speedBox.Text)
-		if num and num > 0 then
-			TARGET_SPEED = num
-			if humanoid then
-				humanoid.WalkSpeed = TARGET_SPEED
-			end
+		if num then
+			TARGET_SPEED = math.clamp(num, 1, 200)
+			updateSpeed()
 		end
-		speedBox.Text = ""
 	end
+end)
+
+-- +1 Speed
+plusBtn.MouseButton1Click:Connect(function()
+	TARGET_SPEED = math.clamp(TARGET_SPEED + 1, 1, 200)
+	updateSpeed()
+end)
+
+-- -1 Speed
+minusBtn.MouseButton1Click:Connect(function()
+	TARGET_SPEED = math.clamp(TARGET_SPEED - 1, 1, 200)
+	updateSpeed()
 end)
