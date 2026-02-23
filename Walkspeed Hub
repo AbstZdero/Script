@@ -1,5 +1,5 @@
 -- Created by MrOrmsman
--- Full Version with Loop Toggle
+-- Walkspeed Hub Version
 -- No while true used
 
 local Players = game:GetService("Players")
@@ -56,13 +56,14 @@ frame.Active = true
 frame.Draggable = true
 frame.Parent = screenGui
 
--- Title
+-- ===== TITLE (UPDATED) =====
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30)
+title.Size = UDim2.new(1, 0, 0, 35)
 title.BackgroundTransparency = 1
-title.Text = "WalkSpeed Controller"
+title.Text = "Walkspeed Hub"
 title.TextColor3 = Color3.new(1,1,1)
 title.TextScaled = true
+title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
 -- Close Button
@@ -74,7 +75,7 @@ closeBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
 closeBtn.TextColor3 = Color3.new(1,1,1)
 closeBtn.Parent = frame
 
--- Normal Toggle Button (No Loop)
+-- Normal WalkSpeed Toggle
 local toggleBtn = Instance.new("TextButton")
 toggleBtn.Size = UDim2.new(0.8, 0, 0, 35)
 toggleBtn.Position = UDim2.new(0.1, 0, 0.3, 0)
@@ -83,7 +84,7 @@ toggleBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
 toggleBtn.TextColor3 = Color3.new(1,1,1)
 toggleBtn.Parent = frame
 
--- Loop Toggle Button
+-- Loop WalkSpeed Toggle
 local loopBtn = Instance.new("TextButton")
 loopBtn.Size = UDim2.new(0.8, 0, 0, 35)
 loopBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
@@ -103,7 +104,7 @@ speedBox.Parent = frame
 
 -- ===== Button Functions =====
 
--- Open/Close GUI
+-- Open / Close
 openBtn.MouseButton1Click:Connect(function()
 	frame.Visible = not frame.Visible
 end)
@@ -112,28 +113,26 @@ closeBtn.MouseButton1Click:Connect(function()
 	frame.Visible = false
 end)
 
--- Normal WalkSpeed Toggle
+-- Normal Toggle
 toggleBtn.MouseButton1Click:Connect(function()
 	ENABLED = not ENABLED
 	
 	if ENABLED then
 		toggleBtn.Text = "WalkSpeed: ON"
 		toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
-		
 		if humanoid then
 			humanoid.WalkSpeed = TARGET_SPEED
 		end
 	else
 		toggleBtn.Text = "WalkSpeed: OFF"
 		toggleBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
-		
 		if humanoid then
 			humanoid.WalkSpeed = 16
 		end
 	end
 end)
 
--- Loop WalkSpeed Toggle (Heartbeat, No while true)
+-- Loop Toggle (No while true)
 loopBtn.MouseButton1Click:Connect(function()
 	LOOP_ENABLED = not LOOP_ENABLED
 	
@@ -157,7 +156,7 @@ loopBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Set Speed on Enter
+-- Set Speed
 speedBox.FocusLost:Connect(function(enterPressed)
 	if enterPressed then
 		local num = tonumber(speedBox.Text)
