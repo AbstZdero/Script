@@ -69,7 +69,7 @@ end)
 -- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 200, 0, 275)
+MainFrame.Size = UDim2.new(0, 200, 0, 250)
 MainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
 MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 MainFrame.BorderSizePixel = 0
@@ -189,16 +189,17 @@ end)
 local toolsList = {
 	"WorldCuttingSlash",
 	"HollowPurple",
-	"MaximumEnergy",
 	"SeriousPunch",
 	"Smash",
-	"StrongPunch",
-	"BlackFlash",
-	"GroundSlam",
-	"HeavyPunch",
+	"MaximumEnergy",
 	"ChargedEnergyPunch",
 	"EnergyPunchII",
-	"EnergyPunch"
+	"EnergyPunch",
+	"BlackFlash",
+	"ForcingPunch",
+	"GroundSlam",
+	"HeavyPunch",
+	"StrongPunch"
 }
 
 -- 2. ADD TOOL BUTTONS
