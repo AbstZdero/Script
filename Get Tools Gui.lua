@@ -1,3 +1,10 @@
+-- Target PlaceId
+local TARGET_PLACE_ID = 86152084642103
+
+-- Check if we're in the correct game
+if game.PlaceId == TARGET_PLACE_ID then
+
+-- Local Script with all Tools
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
