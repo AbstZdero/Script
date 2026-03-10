@@ -1,0 +1,489 @@
+local a = game:GetService("Players")
+local b = game:GetService("RunService")
+local c = workspace.CurrentCamera
+local d = a.LocalPlayer
+local e = nil
+
+-- === Configuration Variables ===
+-- Silent Aim Config
+local isEnabled = false
+local showFOV = false
+local FOV_RADIUS = 70
+local targetPartSelection = "Torso" 
+local teamCheck = false 
+local wallCheck = true 
+
+-- Aim Lock Config
+local aimLockEnabled = false
+local aimLockSmoothness = 1
+
+-- ESP Config
+local espEnabled = false
+local nameEspEnabled = false
+local healthEspEnabled = false 
+local espTeamCheck = false
+local espHighlightColor = Color3.fromRGB(255, 0, 0)
+local espNameColor = Color3.fromRGB(255, 255, 255)
+
+-- === FOV Circle Drawing ===
+local fovCircle
+pcall(function()
+    fovCircle = Drawing.new("Circle")
+    fovCircle.Thickness = 1
+    fovCircle.Color = Color3.fromRGB(255, 255, 255)
+    fovCircle.Filled = false
+    fovCircle.Radius = FOV_RADIUS
+    fovCircle.Visible = false
+end)
+
+-- === ESP Setup & Logic ===
+local espFolder = Instance.new("Folder")
+espFolder.Name = "SilentAimESP"
+pcall(function()
+    espFolder.Parent = game:GetService("CoreGui")
+end)
+if not espFolder.Parent then
+    espFolder.Parent = workspace
+end
+
+local espCache = {}
+
+local function createEsp(player)
+    if not espCache[player] then
+        local highlight = Instance.new("Highlight")
+        highlight.FillTransparency = 0.5
+        highlight.OutlineTransparency = 0
+        highlight.Parent = espFolder
+        
+        local nameText = Drawing.new("Text")
+        nameText.Size = 18
+        nameText.Center = true
+        nameText.Outline = true
+        nameText.Font = 2
+        nameText.Visible = false
+        
+        local healthText = Drawing.new("Text")
+        healthText.Size = 15
+        healthText.Center = true
+        healthText.Outline = true
+        healthText.Font = 2
+        healthText.Visible = false
+        
+        espCache[player] = { 
+            Highlight = highlight, 
+            NameText = nameText, 
+            HealthText = healthText 
+        }
+    end
+    return espCache[player]
+end
+
+local function removeEsp(player)
+    if espCache[player] then
+        if espCache[player].Highlight then espCache[player].Highlight:Destroy() end
+        if espCache[player].NameText then espCache[player].NameText:Remove() end
+        if espCache[player].HealthText then espCache[player].HealthText:Remove() end
+        espCache[player] = nil
+    end
+end
+
+-- FIX FOR NEW PLAYERS JOINING
+for _, player in pairs(a:GetPlayers()) do
+    if player ~= d then
+        createEsp(player)
+    end
+end
+
+a.PlayerAdded:Connect(function(player)
+    if player ~= d then
+        createEsp(player)
+    end
+end)
+
+a.PlayerRemoving:Connect(removeEsp)
+
+-- RenderStepped for FOV Circle, ESP, and Camera Lock
+b.RenderStepped:Connect(function()
+    -- FOV Circle Update
+    if fovCircle then
+        local i = c.ViewportSize
+        fovCircle.Position = Vector2.new(i.X / 2, i.Y / 2)
+        fovCircle.Radius = FOV_RADIUS
+        fovCircle.Visible = (showFOV and (isEnabled or aimLockEnabled))
+    end
+
+    -- AIM LOCK LOGIC
+    if aimLockEnabled and e and e.Parent then
+        local targetHum = e.Parent:FindFirstChild("Humanoid")
+        if targetHum and targetHum.Health > 0 then
+            local targetPos = e.Position
+            local targetCFrame = CFrame.new(c.CFrame.Position, targetPos)
+            if aimLockSmoothness >= 1 then
+                c.CFrame = targetCFrame
+            else
+                c.CFrame = c.CFrame:Lerp(targetCFrame, aimLockSmoothness)
+            end
+        end
+    end
+
+    -- ESP Update
+    for _, player in pairs(a:GetPlayers()) do
+        if player == d then continue end
+        
+        local char = player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        local head = char and char:FindFirstChild("Head")
+        local hum = char and char:FindFirstChild("Humanoid")
+        
+        local isAlive = char and root and hum and hum.Health > 0
+        local passTeamCheck = not espTeamCheck or (d.Team == nil or player.Team ~= d.Team)
+        
+        local objs = espCache[player]
+        if not objs then 
+            objs = createEsp(player) 
+        end
+        
+        if isAlive and passTeamCheck then
+            -- Player ESP (Highlight)
+            if espEnabled then
+                objs.Highlight.Adornee = char
+                objs.Highlight.FillColor = espHighlightColor
+                objs.Highlight.OutlineColor = espHighlightColor
+                objs.Highlight.Enabled = true
+            else
+                objs.Highlight.Enabled = false
+            end
+            
+            -- Name & Health ESP (Text)
+            if (nameEspEnabled or healthEspEnabled) and head then
+                local vector, onScreen = c:WorldToViewportPoint(head.Position + Vector3.new(0, 1.5, 0))
+                
+                if onScreen then
+                    local currentY = vector.Y
+                    
+                    -- Render Name
+                    if nameEspEnabled then
+                        objs.NameText.Position = Vector2.new(vector.X, currentY)
+                        objs.NameText.Text = player.Name
+                        objs.NameText.Color = espNameColor
+                        objs.NameText.Visible = true
+                        currentY = currentY + 16 
+                    else
+                        objs.NameText.Visible = false
+                    end
+                    
+                    -- Render Health
+                    if healthEspEnabled then
+                        objs.HealthText.Position = Vector2.new(vector.X, currentY)
+                        objs.HealthText.Text = "[ " .. tostring(math.floor(hum.Health)) .. " HP ]"
+                        
+                        local hpPercent = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+                        objs.HealthText.Color = Color3.new(1 - hpPercent, hpPercent, 0)
+                        objs.HealthText.Visible = true
+                    else
+                        objs.HealthText.Visible = false
+                    end
+                    
+                else
+                    objs.NameText.Visible = false
+                    objs.HealthText.Visible = false
+                end
+            else
+                objs.NameText.Visible = false
+                objs.HealthText.Visible = false
+            end
+        else
+            -- Cleanly hide and remove adornee if dead/failed team check
+            objs.Highlight.Adornee = nil
+            objs.Highlight.Enabled = false
+            objs.NameText.Visible = false
+            objs.HealthText.Visible = false
+        end
+    end
+end)
+
+-- === Target Finding Logic ===
+local function f()
+    if not (isEnabled or aimLockEnabled) then return nil end
+
+    local g, h
+    local i = c.ViewportSize
+    local j = Vector2.new(i.X / 2, i.Y / 2)
+
+    for _, k in pairs(a:GetPlayers()) do
+        if k == d then continue end
+        if teamCheck and d.Team ~= nil and k.Team == d.Team then continue end
+
+        local l = k.Character
+        if not l then continue end
+        local m = l:FindFirstChild("Humanoid")
+        if not m or m.Health <= 0 then continue end
+        
+        local n
+        if targetPartSelection == "Head" then
+            n = l:FindFirstChild("Head")
+        elseif targetPartSelection == "Torso" then
+            n = l:FindFirstChild("Torso") or l:FindFirstChild("UpperTorso") or l:FindFirstChild("HumanoidRootPart")
+        elseif targetPartSelection == "HumanoidRootPart" then
+            n = l:FindFirstChild("HumanoidRootPart")
+        end
+        
+        if n then
+            local isVisible = true
+            if wallCheck then
+                local o = d.Character
+                if o then
+                    local p = RaycastParams.new()
+                    p.FilterDescendantsInstances = {o, l}
+                    p.FilterType = Enum.RaycastFilterType.Exclude
+                    local q = c.CFrame.Position
+                    local r = (n.Position - q)
+                    local s = workspace:Raycast(q, r, p)
+                    if s and not s.Instance:IsDescendantOf(l) then 
+                        isVisible = false 
+                    end
+                end
+            end
+            
+            if not isVisible then continue end
+            
+            local t, u = c:WorldToScreenPoint(n.Position)
+            if u then
+                local v = (j - Vector2.new(t.X, t.Y)).Magnitude
+                if v <= FOV_RADIUS and v <= (h or FOV_RADIUS) then
+                    g = n
+                    h = v
+                end
+            end
+        end
+    end
+    return g
+end
+
+b.Heartbeat:Connect(function() 
+    local success, result = pcall(f)
+    if success then
+        e = result
+    end
+end)
+
+-- === Hook Namecall (Silent Aim) ===
+local w
+w = hookmetamethod(game, "__namecall", newcclosure(function(...)
+    local x, y = getnamecallmethod(), {...}
+    local z = y[1]
+    
+    if isEnabled and z == workspace and not checkcaller() and x == "Raycast" then
+        local aa = e
+        if aa and aa.Parent then
+            local ab = y[2]
+            local ac = (aa.Position - ab).Unit * 1000
+            y[2], y[3] = ab, ac
+            return w(unpack(y))
+        end
+    end
+    return w(...)
+end))
+
+-- ==========================================
+-- ====== RAYFIELD UI IMPLEMENTATION ======
+-- ==========================================
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Shooter Hub",
+   LoadingTitle = "Loading Scripts...",
+   LoadingSubtitle = "made by Zderonao",
+   ConfigurationSaving = {
+      Enabled = false,
+   },
+   KeySystem = false
+})
+
+-- ====== COMBAT TAB ======
+local CombatTab = Window:CreateTab("Combat", 4483362458)
+
+local AimToggle = CombatTab:CreateToggle({
+   Name = "Enable Silent Aim",
+   CurrentValue = isEnabled,
+   Flag = "SilentAimToggle",
+   Callback = function(Value)
+       isEnabled = Value
+   end,
+})
+
+local CamLockToggle = CombatTab:CreateToggle({
+   Name = "Enable Aim Lock (CamLock)",
+   CurrentValue = aimLockEnabled,
+   Flag = "AimLockToggle",
+   Callback = function(Value)
+       aimLockEnabled = Value
+   end,
+})
+
+local SmoothnessSlider = CombatTab:CreateSlider({
+   Name = "Aim Lock Smoothness",
+   Range = {0.1, 1},
+   Increment = 0.1,
+   Suffix = "Lerp",
+   CurrentValue = aimLockSmoothness,
+   Flag = "SmoothnessSlider",
+   Callback = function(Value)
+       aimLockSmoothness = Value
+   end,
+})
+
+local TeamCheckToggle = CombatTab:CreateToggle({
+   Name = "Team Check",
+   CurrentValue = teamCheck,
+   Flag = "TeamCheckToggle",
+   Callback = function(Value)
+       teamCheck = Value
+   end,
+})
+
+local WallCheckToggle = CombatTab:CreateToggle({
+   Name = "Wall Check",
+   CurrentValue = wallCheck,
+   Flag = "WallCheckToggle",
+   Callback = function(Value)
+       wallCheck = Value
+   end,
+})
+
+local FOVToggle = CombatTab:CreateToggle({
+   Name = "Show FOV Circle",
+   CurrentValue = showFOV,
+   Flag = "FOVVisibleToggle",
+   Callback = function(Value)
+       showFOV = Value
+   end,
+})
+
+local TargetDropdown = CombatTab:CreateDropdown({
+   Name = "Target Part",
+   Options = {"Head", "Torso", "HumanoidRootPart"},
+   CurrentOption = {"Torso"},
+   MultipleOptions = false,
+   Flag = "TargetPartDropdown",
+   Callback = function(Options)
+       targetPartSelection = Options[1]
+   end,
+})
+
+local FOVSlider = CombatTab:CreateSlider({
+   Name = "FOV Radius",
+   Range = {10, 300},
+   Increment = 1,
+   Suffix = "Radius",
+   CurrentValue = FOV_RADIUS,
+   Flag = "FOVSlider",
+   Callback = function(Value)
+       FOV_RADIUS = Value
+   end,
+})
+
+-- ====== ESP SETTINGS TAB ======
+local EspTab = Window:CreateTab("ESP Settings", 4483362458)
+
+EspTab:CreateToggle({
+   Name = "Enable Player ESP (Highlight)",
+   CurrentValue = espEnabled,
+   Flag = "PlayerEspToggle",
+   Callback = function(Value)
+       espEnabled = Value
+   end,
+})
+
+EspTab:CreateToggle({
+   Name = "Enable Name ESP",
+   CurrentValue = nameEspEnabled,
+   Flag = "NameEspToggle",
+   Callback = function(Value)
+       nameEspEnabled = Value
+   end,
+})
+
+EspTab:CreateToggle({
+   Name = "Enable Health ESP",
+   CurrentValue = healthEspEnabled,
+   Flag = "HealthEspToggle",
+   Callback = function(Value)
+       healthEspEnabled = Value
+   end,
+})
+
+EspTab:CreateToggle({
+   Name = "ESP Team Check",
+   CurrentValue = espTeamCheck,
+   Flag = "EspTeamCheckToggle",
+   Callback = function(Value)
+       espTeamCheck = Value
+   end,
+})
+
+EspTab:CreateColorPicker({
+    Name = "Player Highlight Color",
+    Color = espHighlightColor,
+    Flag = "EspHighlightColor",
+    Callback = function(Value)
+        espHighlightColor = Value
+    end
+})
+
+EspTab:CreateColorPicker({
+    Name = "Name Text Color",
+    Color = espNameColor,
+    Flag = "EspNameColor",
+    Callback = function(Value)
+        espNameColor = Value
+    end
+})
+
+-- ====== MISC TAB ======
+local MiscTab = Window:CreateTab("Misc", 4483362458)
+
+local UnloadButton = MiscTab:CreateButton({
+   Name = "Destroy UI",
+   Callback = function()
+       Rayfield:Destroy()
+       
+       -- Cleanup FOV Circle
+       if fovCircle then fovCircle:Remove() end
+       
+       -- Cleanup ESP
+       if espFolder then espFolder:Destroy() end
+       for _, cache in pairs(espCache) do
+           if cache.NameText then cache.NameText:Remove() end
+           if cache.HealthText then cache.HealthText:Remove() end
+       end
+       espCache = {}
+       
+       isEnabled = false 
+       aimLockEnabled = false
+   end,
+})
+
+local CheckTargetButton = MiscTab:CreateButton({
+   Name = "Print Current Target",
+   Callback = function()
+       if e then
+           print("Current Target:", e.Parent.Name, "-> Part:", e.Name)
+           Rayfield:Notify({
+               Title = "Target Found",
+               Content = "Locked onto: " .. e.Parent.Name .. " (" .. e.Name .. ")",
+               Duration = 3,
+           })
+       else
+           print("No target in FOV")
+           Rayfield:Notify({
+               Title = "No Target",
+               Content = "Nobody is currently in your FOV.",
+               Duration = 3,
+           })
+       end
+   end,
+})
+
+Rayfield:LoadConfiguration()
