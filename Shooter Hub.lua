@@ -27,8 +27,8 @@ local healthEspEnabled = false
 local espTeamCheck = false
 local espHighlightColor = Color3.fromRGB(255, 0, 0)
 local espNameColor = Color3.fromRGB(255, 255, 255)
-local espFillTransparency = 0.5  -- NEW: Fill Transparency
-local espOutlineTransparency = 0 -- NEW: Outline Transparency
+local espFillTransparency = 0.6  -- NEW: Fill Transparency
+local espOutlineTransparency = 0.2 -- NEW: Outline Transparency
 
 -- === FOV Circle Drawing ===
 local fovCircle
@@ -205,7 +205,7 @@ end)
 -- === NPC Background Caching ===
 local npcCache = {}
 task.spawn(function()
-    while task.wait(1) do
+    while task.wait(2) do
         if table.find(targetTypes, "Npc") then
             local newCache = {}
             for _, v in pairs(workspace:GetDescendants()) do
