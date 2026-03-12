@@ -27,6 +27,8 @@ local healthEspEnabled = false
 local espTeamCheck = false
 local espHighlightColor = Color3.fromRGB(255, 0, 0)
 local espNameColor = Color3.fromRGB(255, 255, 255)
+local espFillTransparency = 0.5  -- NEW: Fill Transparency
+local espOutlineTransparency = 0 -- NEW: Outline Transparency
 
 -- === FOV Circle Drawing ===
 local fovCircle
@@ -54,8 +56,8 @@ local espCache = {}
 local function createEsp(player)
     if not espCache[player] then
         local highlight = Instance.new("Highlight")
-        highlight.FillTransparency = 0.5
-        highlight.OutlineTransparency = 0
+        highlight.FillTransparency = espFillTransparency
+        highlight.OutlineTransparency = espOutlineTransparency
         highlight.Parent = espFolder
         
         local nameText = Drawing.new("Text")
@@ -150,6 +152,8 @@ b.RenderStepped:Connect(function()
                 objs.Highlight.Adornee = char
                 objs.Highlight.FillColor = espHighlightColor
                 objs.Highlight.OutlineColor = espHighlightColor
+                objs.Highlight.FillTransparency = espFillTransparency       -- Apply transparency updates dynamically
+                objs.Highlight.OutlineTransparency = espOutlineTransparency -- Apply transparency updates dynamically
                 objs.Highlight.Enabled = true
             else
                 objs.Highlight.Enabled = false
@@ -199,7 +203,6 @@ b.RenderStepped:Connect(function()
 end)
 
 -- === NPC Background Caching ===
--- (Done on a separate thread to prevent FPS drops from scanning workspace every frame)
 local npcCache = {}
 task.spawn(function()
     while task.wait(1) do
@@ -329,7 +332,9 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "Loading Scripts...",
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
-      Enabled = false,
+      Enabled = true,        -- Enabled Auto Save/Load
+      FolderName = "ShooterHubConfigs",
+      FileName = "shooter"   -- Generates/Loads shooter.json
    },
    KeySystem = false
 })
@@ -347,7 +352,7 @@ local AimToggle = CombatTab:CreateToggle({
 })
 
 local CamLockToggle = CombatTab:CreateToggle({
-   Name = "Aim Lock (CamLock)",
+   Name = "Aim Lock",
    CurrentValue = aimLockEnabled,
    Flag = "AimLockToggle",
    Callback = function(Value)
@@ -355,7 +360,6 @@ local CamLockToggle = CombatTab:CreateToggle({
    end,
 })
 
--- NEW MULTIPLE SELECTOR FOR ENTITIES (PLAYER / NPC)
 local TargetEntityDropdown = CombatTab:CreateDropdown({
    Name = "Target Entities",
    Options = {"Player", "Npc"},
@@ -363,7 +367,6 @@ local TargetEntityDropdown = CombatTab:CreateDropdown({
    MultipleOptions = true,
    Flag = "TargetEntityDropdown",
    Callback = function(Options)
-       -- Updates array logic to support "Player", "Npc", or both dynamically.
        targetTypes = Options
    end,
 })
@@ -469,6 +472,30 @@ EspTab:CreateToggle({
    end,
 })
 
+EspTab:CreateSlider({
+   Name = "Fill Transparency",
+   Range = {0, 1},
+   Increment = 0.05,
+   Suffix = "Transparency",
+   CurrentValue = espFillTransparency,
+   Flag = "EspFillTransSlider",
+   Callback = function(Value)
+       espFillTransparency = Value
+   end,
+})
+
+EspTab:CreateSlider({
+   Name = "Outline Transparency",
+   Range = {0, 1},
+   Increment = 0.05,
+   Suffix = "Transparency",
+   CurrentValue = espOutlineTransparency,
+   Flag = "EspOutlineTransSlider",
+   Callback = function(Value)
+       espOutlineTransparency = Value
+   end,
+})
+
 EspTab:CreateColorPicker({
     Name = "Player Highlight Color",
     Color = espHighlightColor,
@@ -532,4 +559,5 @@ local CheckTargetButton = MiscTab:CreateButton({
    end,
 })
 
+-- Trigger auto loading after all UI setup is finished
 Rayfield:LoadConfiguration()
