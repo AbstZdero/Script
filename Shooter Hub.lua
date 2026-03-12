@@ -8,7 +8,7 @@ local e = nil
 -- Silent Aim Config
 local isEnabled = false
 local showFOV = false
-local FOV_RADIUS = 80
+local FOV_RADIUS = 67
 local targetPartSelection = "HumanoidRootPart" 
 local teamCheck = false 
 local wallCheck = true 
