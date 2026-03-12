@@ -12,7 +12,7 @@ local targetPartSelection = "HumanoidRootPart"
 -- Silent Aim Config
 local isEnabled = false
 local showFOV = false
-local FOV_RADIUS = 67
+local FOV_RADIUS = 80
 local teamCheck = false 
 local wallCheck = true 
 
@@ -202,7 +202,7 @@ end)
 -- (Done on a separate thread to prevent FPS drops from scanning workspace every frame)
 local npcCache = {}
 task.spawn(function()
-    while task.wait(2) do
+    while task.wait(1) do
         if table.find(targetTypes, "Npc") then
             local newCache = {}
             for _, v in pairs(workspace:GetDescendants()) do
