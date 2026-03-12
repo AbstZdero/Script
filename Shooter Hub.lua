@@ -5,11 +5,14 @@ local d = a.LocalPlayer
 local e = nil
 
 -- === Configuration Variables ===
+-- Target & Entity Config
+local targetTypes = {"Player"} -- Can contain "Player", "Npc", or both
+local targetPartSelection = "HumanoidRootPart" 
+
 -- Silent Aim Config
 local isEnabled = false
 local showFOV = false
 local FOV_RADIUS = 67
-local targetPartSelection = "HumanoidRootPart" 
 local teamCheck = false 
 local wallCheck = true 
 
@@ -87,7 +90,6 @@ local function removeEsp(player)
     end
 end
 
--- FIX FOR NEW PLAYERS JOINING
 for _, player in pairs(a:GetPlayers()) do
     if player ~= d then
         createEsp(player)
@@ -144,7 +146,6 @@ b.RenderStepped:Connect(function()
         end
         
         if isAlive and passTeamCheck then
-            -- Player ESP (Highlight)
             if espEnabled then
                 objs.Highlight.Adornee = char
                 objs.Highlight.FillColor = espHighlightColor
@@ -154,14 +155,12 @@ b.RenderStepped:Connect(function()
                 objs.Highlight.Enabled = false
             end
             
-            -- Name & Health ESP (Text)
             if (nameEspEnabled or healthEspEnabled) and head then
                 local vector, onScreen = c:WorldToViewportPoint(head.Position + Vector3.new(0, 1.5, 0))
                 
                 if onScreen then
                     local currentY = vector.Y
                     
-                    -- Render Name
                     if nameEspEnabled then
                         objs.NameText.Position = Vector2.new(vector.X, currentY)
                         objs.NameText.Text = player.Name
@@ -172,7 +171,6 @@ b.RenderStepped:Connect(function()
                         objs.NameText.Visible = false
                     end
                     
-                    -- Render Health
                     if healthEspEnabled then
                         objs.HealthText.Position = Vector2.new(vector.X, currentY)
                         objs.HealthText.Text = "[ " .. tostring(math.floor(hum.Health)) .. " HP ]"
@@ -183,7 +181,6 @@ b.RenderStepped:Connect(function()
                     else
                         objs.HealthText.Visible = false
                     end
-                    
                 else
                     objs.NameText.Visible = false
                     objs.HealthText.Visible = false
@@ -193,11 +190,31 @@ b.RenderStepped:Connect(function()
                 objs.HealthText.Visible = false
             end
         else
-            -- Cleanly hide and remove adornee if dead/failed team check
             objs.Highlight.Adornee = nil
             objs.Highlight.Enabled = false
             objs.NameText.Visible = false
             objs.HealthText.Visible = false
+        end
+    end
+end)
+
+-- === NPC Background Caching ===
+-- (Done on a separate thread to prevent FPS drops from scanning workspace every frame)
+local npcCache = {}
+task.spawn(function()
+    while task.wait(2) do
+        if table.find(targetTypes, "Npc") then
+            local newCache = {}
+            for _, v in pairs(workspace:GetDescendants()) do
+                -- Look for living Humanoids inside a Model that is NOT a player
+                if v:IsA("Humanoid") and v.Health > 0 and v.Parent and v.Parent:IsA("Model") then
+                    local char = v.Parent
+                    if char ~= d.Character and not a:GetPlayerFromCharacter(char) then
+                        table.insert(newCache, char)
+                    end
+                end
+            end
+            npcCache = newCache
         end
     end
 end)
@@ -210,12 +227,28 @@ local function f()
     local i = c.ViewportSize
     local j = Vector2.new(i.X / 2, i.Y / 2)
 
-    for _, k in pairs(a:GetPlayers()) do
-        if k == d then continue end
-        if teamCheck and d.Team ~= nil and k.Team == d.Team then continue end
+    local potentialTargets = {}
 
-        local l = k.Character
-        if not l then continue end
+    -- 1. Grab Players (if selected)
+    if table.find(targetTypes, "Player") then
+        for _, k in pairs(a:GetPlayers()) do
+            if k == d then continue end
+            if teamCheck and d.Team ~= nil and k.Team == d.Team then continue end
+            
+            local l = k.Character
+            if l then table.insert(potentialTargets, l) end
+        end
+    end
+
+    -- 2. Grab NPCs (if selected)
+    if table.find(targetTypes, "Npc") then
+        for _, l in pairs(npcCache) do
+            if l and l.Parent then table.insert(potentialTargets, l) end
+        end
+    end
+
+    -- 3. Calculate closest target
+    for _, l in pairs(potentialTargets) do
         local m = l:FindFirstChild("Humanoid")
         if not m or m.Health <= 0 then continue end
         
@@ -322,6 +355,30 @@ local CamLockToggle = CombatTab:CreateToggle({
    end,
 })
 
+-- NEW MULTIPLE SELECTOR FOR ENTITIES (PLAYER / NPC)
+local TargetEntityDropdown = CombatTab:CreateDropdown({
+   Name = "Target Entities",
+   Options = {"Player", "Npc"},
+   CurrentOption = {"Player"},
+   MultipleOptions = true,
+   Flag = "TargetEntityDropdown",
+   Callback = function(Options)
+       -- Updates array logic to support "Player", "Npc", or both dynamically.
+       targetTypes = Options
+   end,
+})
+
+local TargetPartDropdown = CombatTab:CreateDropdown({
+   Name = "Target Part",
+   Options = {"Head", "HumanoidRootPart"},
+   CurrentOption = {"HumanoidRootPart"},
+   MultipleOptions = false,
+   Flag = "TargetPartDropdown",
+   Callback = function(Options)
+       targetPartSelection = Options[1]
+   end,
+})
+
 local SmoothnessSlider = CombatTab:CreateSlider({
    Name = "Aim Lock Smoothness",
    Range = {0.1, 1},
@@ -361,17 +418,6 @@ local FOVToggle = CombatTab:CreateToggle({
    end,
 })
 
-local TargetDropdown = CombatTab:CreateDropdown({
-   Name = "Target Part",
-   Options = {"Head", "HumanoidRootPart"},
-   CurrentOption = {"HumanoidRootPart"},
-   MultipleOptions = false,
-   Flag = "TargetPartDropdown",
-   Callback = function(Options)
-       targetPartSelection = Options[1]
-   end,
-})
-
 local FOVSlider = CombatTab:CreateSlider({
    Name = "FOV Radius",
    Range = {10, 300},
@@ -385,7 +431,7 @@ local FOVSlider = CombatTab:CreateSlider({
 })
 
 -- ====== ESP SETTINGS TAB ======
-local EspTab = Window:CreateTab("Visunls", 4483362458)
+local EspTab = Window:CreateTab("Visuals", 4483362458)
 
 EspTab:CreateToggle({
    Name = "Chams",
