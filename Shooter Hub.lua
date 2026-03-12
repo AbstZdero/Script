@@ -8,8 +8,8 @@ local e = nil
 -- Silent Aim Config
 local isEnabled = false
 local showFOV = false
-local FOV_RADIUS = 70
-local targetPartSelection = "Torso" 
+local FOV_RADIUS = 80
+local targetPartSelection = "HumanoidRootPart" 
 local teamCheck = false 
 local wallCheck = true 
 
@@ -363,8 +363,8 @@ local FOVToggle = CombatTab:CreateToggle({
 
 local TargetDropdown = CombatTab:CreateDropdown({
    Name = "Target Part",
-   Options = {"Head", "Torso", "HumanoidRootPart"},
-   CurrentOption = {"Torso"},
+   Options = {"Head", "HumanoidRootPart"},
+   CurrentOption = {"HumanoidRootPart"},
    MultipleOptions = false,
    Flag = "TargetPartDropdown",
    Callback = function(Options)
@@ -385,10 +385,10 @@ local FOVSlider = CombatTab:CreateSlider({
 })
 
 -- ====== ESP SETTINGS TAB ======
-local EspTab = Window:CreateTab("ESP Settings", 4483362458)
+local EspTab = Window:CreateTab("Visunls", 4483362458)
 
 EspTab:CreateToggle({
-   Name = "Enable Player ESP (Highlight)",
+   Name = "Chams",
    CurrentValue = espEnabled,
    Flag = "PlayerEspToggle",
    Callback = function(Value)
@@ -397,7 +397,7 @@ EspTab:CreateToggle({
 })
 
 EspTab:CreateToggle({
-   Name = "Enable Name ESP",
+   Name = "Name Esp",
    CurrentValue = nameEspEnabled,
    Flag = "NameEspToggle",
    Callback = function(Value)
@@ -406,7 +406,7 @@ EspTab:CreateToggle({
 })
 
 EspTab:CreateToggle({
-   Name = "Enable Health ESP",
+   Name = "Health ESP",
    CurrentValue = healthEspEnabled,
    Flag = "HealthEspToggle",
    Callback = function(Value)
