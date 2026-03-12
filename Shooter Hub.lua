@@ -338,7 +338,7 @@ local Window = Rayfield:CreateWindow({
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 
 local AimToggle = CombatTab:CreateToggle({
-   Name = "Enable Silent Aim",
+   Name = "Silent Aim",
    CurrentValue = isEnabled,
    Flag = "SilentAimToggle",
    Callback = function(Value)
@@ -347,7 +347,7 @@ local AimToggle = CombatTab:CreateToggle({
 })
 
 local CamLockToggle = CombatTab:CreateToggle({
-   Name = "Enable Aim Lock (CamLock)",
+   Name = "Aim Lock (CamLock)",
    CurrentValue = aimLockEnabled,
    Flag = "AimLockToggle",
    Callback = function(Value)
@@ -420,8 +420,8 @@ local FOVToggle = CombatTab:CreateToggle({
 
 local FOVSlider = CombatTab:CreateSlider({
    Name = "FOV Radius",
-   Range = {10, 300},
-   Increment = 1,
+   Range = {10, 400},
+   Increment = 5,
    Suffix = "Radius",
    CurrentValue = FOV_RADIUS,
    Flag = "FOVSlider",
