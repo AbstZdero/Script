@@ -8,6 +8,7 @@ local e = nil
 -- Target & Entity Config
 local targetTypes = {"Player"} -- Can contain "Player", "Npc", or both
 local targetPartSelection = "HumanoidRootPart" 
+local targetTeams = {} -- NEW: Stores selected teams to target
 
 -- Silent Aim Config
 local isEnabled = false
@@ -25,7 +26,7 @@ local espEnabled = false
 local nameEspEnabled = false
 local healthEspEnabled = false 
 local espTeamCheck = false
-local espAutoColorTeam = false -- NEW: Auto Color Team
+local espAutoColorTeam = false -- Auto Color Team
 local espHighlightColor = Color3.fromRGB(255, 0, 0)
 local espNameColor = Color3.fromRGB(255, 255, 255)
 local espFillTransparency = 0.6  
@@ -120,7 +121,7 @@ b.RenderStepped:Connect(function()
     -- AIM LOCK LOGIC
     if aimLockEnabled and e and e.Parent then
         local targetHum = e.Parent:FindFirstChild("Humanoid")
-        -- NEW: Instantly drop lock if target dies
+        -- Instantly drop lock if target dies
         if targetHum and targetHum.Health > 0 and targetHum:GetState() ~= Enum.HumanoidStateType.Dead then
             local targetPos = e.Position
             local targetCFrame = CFrame.new(c.CFrame.Position, targetPos)
@@ -153,7 +154,7 @@ b.RenderStepped:Connect(function()
         end
         
         if isAlive and passTeamCheck then
-            -- NEW: Auto Color Team Logic
+            -- Auto Color Team Logic
             local useTeamColor = espAutoColorTeam and player.Team ~= nil
             local activeHighlightColor = useTeamColor and player.TeamColor.Color or espHighlightColor
             local activeNameColor = useTeamColor and player.TeamColor.Color or espNameColor
@@ -212,6 +213,17 @@ b.RenderStepped:Connect(function()
     end
 end)
 
+-- NEW: Load current active Teams into a table
+local teamOptions = {}
+pcall(function()
+    if game:GetService("Teams") then
+        for _, team in pairs(game:GetService("Teams"):GetTeams()) do
+            table.insert(teamOptions, team.Name)
+        end
+    end
+end)
+if #teamOptions == 0 then table.insert(teamOptions, "None") end
+
 -- === NPC Background Caching ===
 local npcCache = {}
 task.spawn(function()
@@ -219,7 +231,6 @@ task.spawn(function()
         if table.find(targetTypes, "Npc") then
             local newCache = {}
             for _, v in pairs(workspace:GetDescendants()) do
-                -- Look for living Humanoids inside a Model that is NOT a player
                 if v:IsA("Humanoid") and v.Health > 0 and v:GetState() ~= Enum.HumanoidStateType.Dead and v.Parent and v.Parent:IsA("Model") then
                     local char = v.Parent
                     if char ~= d.Character and not a:GetPlayerFromCharacter(char) then
@@ -248,6 +259,14 @@ local function f()
             if k == d then continue end
             if teamCheck and d.Team ~= nil and k.Team == d.Team then continue end
             
+            -- NEW: Target Teams specific filter
+            -- If you have chosen specific teams to target, it skips players who aren't on those teams.
+            if #targetTeams > 0 then
+                if k.Team == nil or not table.find(targetTeams, k.Team.Name) then
+                    continue 
+                end
+            end
+            
             local l = k.Character
             if l then table.insert(potentialTargets, l) end
         end
@@ -263,11 +282,9 @@ local function f()
     -- 3. Calculate closest target
     for _, l in pairs(potentialTargets) do
         local m = l:FindFirstChild("Humanoid")
-        -- NEW: Strict death checks to avoid dead entities
         if not m or m.Health <= 0 or m:GetState() == Enum.HumanoidStateType.Dead then continue end
         
         local n
-        -- NEW: "Random" target part logic added
         if targetPartSelection == "Random" then
             local validParts = {}
             for _, partName in ipairs({"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "Torso"}) do
@@ -360,6 +377,13 @@ local Window = Rayfield:CreateWindow({
    KeySystem = false
 })
 
+-- ====== HOME TAB ======
+local HomeTab = Window:CreateTab("Home", 4483362458)
+
+local Section = HomeTab:CreateSection("Update Info")
+
+HomeTab:CreateLabel("Add Target Specific Team Selection")
+
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", 4483362458)
 
@@ -392,15 +416,26 @@ local TargetEntityDropdown = CombatTab:CreateDropdown({
    end,
 })
 
--- NEW: Added "Torso" and "Random" to options
 local TargetPartDropdown = CombatTab:CreateDropdown({
    Name = "Target Part",
    Options = {"Head", "Torso", "Random"}, 
-   CurrentOption = {"Torse"},
+   CurrentOption = {"Torso"},
    MultipleOptions = false,
    Flag = "TargetPartDropdown",
    Callback = function(Options)
        targetPartSelection = Options[1]
+   end,
+})
+
+-- NEW: Target Team Selector
+local TargetTeamsDropdown = CombatTab:CreateDropdown({
+   Name = "Target Specific Teams",
+   Options = teamOptions,
+   CurrentOption = {},
+   MultipleOptions = true,
+   Flag = "TargetTeamsDropdown",
+   Callback = function(Options)
+       targetTeams = Options
    end,
 })
 
@@ -417,7 +452,7 @@ local SmoothnessSlider = CombatTab:CreateSlider({
 })
 
 local TeamCheckToggle = CombatTab:CreateToggle({
-   Name = "Team Check",
+   Name = "Team Check (Ignore Allies)",
    CurrentValue = teamCheck,
    Flag = "TeamCheckToggle",
    Callback = function(Value)
@@ -445,7 +480,7 @@ local FOVToggle = CombatTab:CreateToggle({
 
 local FOVSlider = CombatTab:CreateSlider({
    Name = "FOV Radius",
-   Range = {10, 500},
+   Range = {30, 500},
    Increment = 5,
    Suffix = "Radius",
    CurrentValue = FOV_RADIUS,
@@ -494,7 +529,6 @@ EspTab:CreateToggle({
    end,
 })
 
--- NEW: Auto Team Color Toggle
 EspTab:CreateToggle({
     Name = "Auto Team Color",
     CurrentValue = espAutoColorTeam,
