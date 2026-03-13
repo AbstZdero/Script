@@ -25,10 +25,11 @@ local espEnabled = false
 local nameEspEnabled = false
 local healthEspEnabled = false 
 local espTeamCheck = false
+local espAutoColorTeam = false -- NEW: Auto Color Team
 local espHighlightColor = Color3.fromRGB(255, 0, 0)
 local espNameColor = Color3.fromRGB(255, 255, 255)
-local espFillTransparency = 0.6  -- NEW: Fill Transparency
-local espOutlineTransparency = 0.2 -- NEW: Outline Transparency
+local espFillTransparency = 0.6  
+local espOutlineTransparency = 0.2 
 
 -- === FOV Circle Drawing ===
 local fovCircle
@@ -119,7 +120,8 @@ b.RenderStepped:Connect(function()
     -- AIM LOCK LOGIC
     if aimLockEnabled and e and e.Parent then
         local targetHum = e.Parent:FindFirstChild("Humanoid")
-        if targetHum and targetHum.Health > 0 then
+        -- NEW: Instantly drop lock if target dies
+        if targetHum and targetHum.Health > 0 and targetHum:GetState() ~= Enum.HumanoidStateType.Dead then
             local targetPos = e.Position
             local targetCFrame = CFrame.new(c.CFrame.Position, targetPos)
             if aimLockSmoothness >= 1 then
@@ -127,6 +129,8 @@ b.RenderStepped:Connect(function()
             else
                 c.CFrame = c.CFrame:Lerp(targetCFrame, aimLockSmoothness)
             end
+        else
+            e = nil -- Drops the dead target
         end
     end
 
@@ -139,7 +143,8 @@ b.RenderStepped:Connect(function()
         local head = char and char:FindFirstChild("Head")
         local hum = char and char:FindFirstChild("Humanoid")
         
-        local isAlive = char and root and hum and hum.Health > 0
+        -- STRICT Death Check
+        local isAlive = char and root and hum and hum.Health > 0 and hum:GetState() ~= Enum.HumanoidStateType.Dead
         local passTeamCheck = not espTeamCheck or (d.Team == nil or player.Team ~= d.Team)
         
         local objs = espCache[player]
@@ -148,12 +153,17 @@ b.RenderStepped:Connect(function()
         end
         
         if isAlive and passTeamCheck then
+            -- NEW: Auto Color Team Logic
+            local useTeamColor = espAutoColorTeam and player.Team ~= nil
+            local activeHighlightColor = useTeamColor and player.TeamColor.Color or espHighlightColor
+            local activeNameColor = useTeamColor and player.TeamColor.Color or espNameColor
+
             if espEnabled then
                 objs.Highlight.Adornee = char
-                objs.Highlight.FillColor = espHighlightColor
-                objs.Highlight.OutlineColor = espHighlightColor
-                objs.Highlight.FillTransparency = espFillTransparency       -- Apply transparency updates dynamically
-                objs.Highlight.OutlineTransparency = espOutlineTransparency -- Apply transparency updates dynamically
+                objs.Highlight.FillColor = activeHighlightColor
+                objs.Highlight.OutlineColor = activeHighlightColor
+                objs.Highlight.FillTransparency = espFillTransparency
+                objs.Highlight.OutlineTransparency = espOutlineTransparency 
                 objs.Highlight.Enabled = true
             else
                 objs.Highlight.Enabled = false
@@ -168,7 +178,7 @@ b.RenderStepped:Connect(function()
                     if nameEspEnabled then
                         objs.NameText.Position = Vector2.new(vector.X, currentY)
                         objs.NameText.Text = player.Name
-                        objs.NameText.Color = espNameColor
+                        objs.NameText.Color = activeNameColor
                         objs.NameText.Visible = true
                         currentY = currentY + 16 
                     else
@@ -210,7 +220,7 @@ task.spawn(function()
             local newCache = {}
             for _, v in pairs(workspace:GetDescendants()) do
                 -- Look for living Humanoids inside a Model that is NOT a player
-                if v:IsA("Humanoid") and v.Health > 0 and v.Parent and v.Parent:IsA("Model") then
+                if v:IsA("Humanoid") and v.Health > 0 and v:GetState() ~= Enum.HumanoidStateType.Dead and v.Parent and v.Parent:IsA("Model") then
                     local char = v.Parent
                     if char ~= d.Character and not a:GetPlayerFromCharacter(char) then
                         table.insert(newCache, char)
@@ -253,10 +263,21 @@ local function f()
     -- 3. Calculate closest target
     for _, l in pairs(potentialTargets) do
         local m = l:FindFirstChild("Humanoid")
-        if not m or m.Health <= 0 then continue end
+        -- NEW: Strict death checks to avoid dead entities
+        if not m or m.Health <= 0 or m:GetState() == Enum.HumanoidStateType.Dead then continue end
         
         local n
-        if targetPartSelection == "Head" then
+        -- NEW: "Random" target part logic added
+        if targetPartSelection == "Random" then
+            local validParts = {}
+            for _, partName in ipairs({"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "Torso"}) do
+                local p = l:FindFirstChild(partName)
+                if p then table.insert(validParts, p) end
+            end
+            if #validParts > 0 then
+                n = validParts[math.random(1, #validParts)]
+            end
+        elseif targetPartSelection == "Head" then
             n = l:FindFirstChild("Head")
         elseif targetPartSelection == "Torso" then
             n = l:FindFirstChild("Torso") or l:FindFirstChild("UpperTorso") or l:FindFirstChild("HumanoidRootPart")
@@ -332,9 +353,9 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "Loading Scripts...",
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
-      Enabled = true,        -- Enabled Auto Save/Load
+      Enabled = true,        
       FolderName = "ShooterHubConfigs",
-      FileName = "shooter"   -- Generates/Loads shooter.json
+      FileName = "shooter"   
    },
    KeySystem = false
 })
@@ -371,10 +392,11 @@ local TargetEntityDropdown = CombatTab:CreateDropdown({
    end,
 })
 
+-- NEW: Added "Torso" and "Random" to options
 local TargetPartDropdown = CombatTab:CreateDropdown({
    Name = "Target Part",
-   Options = {"Head", "HumanoidRootPart"},
-   CurrentOption = {"HumanoidRootPart"},
+   Options = {"Head", "Torso", "Random"}, 
+   CurrentOption = {"Torse"},
    MultipleOptions = false,
    Flag = "TargetPartDropdown",
    Callback = function(Options)
@@ -423,7 +445,7 @@ local FOVToggle = CombatTab:CreateToggle({
 
 local FOVSlider = CombatTab:CreateSlider({
    Name = "FOV Radius",
-   Range = {10, 400},
+   Range = {10, 500},
    Increment = 5,
    Suffix = "Radius",
    CurrentValue = FOV_RADIUS,
@@ -433,7 +455,7 @@ local FOVSlider = CombatTab:CreateSlider({
    end,
 })
 
--- ====== ESP SETTINGS TAB ======
+-- ====== VISUALS TAB ======
 local EspTab = Window:CreateTab("Visuals", 4483362458)
 
 EspTab:CreateToggle({
@@ -470,6 +492,16 @@ EspTab:CreateToggle({
    Callback = function(Value)
        espTeamCheck = Value
    end,
+})
+
+-- NEW: Auto Team Color Toggle
+EspTab:CreateToggle({
+    Name = "Auto Team Color",
+    CurrentValue = espAutoColorTeam,
+    Flag = "EspAutoColorTeam",
+    Callback = function(Value)
+        espAutoColorTeam = Value
+    end,
 })
 
 EspTab:CreateSlider({
