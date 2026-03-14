@@ -370,9 +370,9 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "Loading Scripts...",
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "Shooter",
-      FileName = "Shooterload"
+      Enabled = true
+      FolderName = "ShooterSave",
+      FileName = "ShooterLoad",
    },
    KeySystem = false
 })
@@ -382,8 +382,8 @@ local HomeTab = Window:CreateTab("Home", "home")
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Sorry, I fixed Rayfield UI ain't show
-HomeTab:CreateLabel("Not save on Target Specific Teams")
+HomeTab:CreateLabel("Very Sorry, I fixed Rayfield UI ain't show 😅")
+HomeTab:CreateLabel("Not Save Target Specifi Teams)
 
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", "crosshair")
@@ -432,10 +432,10 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {"None"},
+   CurrentOption = {"none"},
    MultipleOptions = true,
-   Flag = "TargetTeamsDropdown",
    Save = false,
+   Flag = "TargetTeamsDropdown",
    Callback = function(Options)
        targetTeams = Options
    end,
