@@ -11,7 +11,7 @@ local targetPartSelection = "HumanoidRootPart"
 local targetTeams = {} -- NEW: Stores selected teams to target
 
 -- Silent Aim Config
-local isEnabled = false
+local isEnabled = true
 local showFOV = true
 local FOV_RADIUS = 90
 local teamCheck = false 
@@ -30,7 +30,7 @@ local espAutoColorTeam = true -- Auto Team Color
 local espHighlightColor = Color3.fromRGB(255, 0, 0)
 local espNameColor = Color3.fromRGB(255, 255, 255)
 local espFillTransparency = 0.6  
-local espOutlineTransparency = 0.2 
+local espOutlineTransparency = 0.1 
 
 -- === FOV Circle Drawing ===
 local fovCircle
@@ -382,7 +382,7 @@ local HomeTab = Window:CreateTab("Home", 4483362458)
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Removed Save on Target Specifi Teams")
+HomeTab:CreateLabel("Removed Auto Save/load")
 
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", 4483362458)
@@ -431,10 +431,9 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {None},
+   CurrentOption = {},
    MultipleOptions = true
    Flag = "TargetTeamsDropdown",
-   Save = false
    Callback = function(Options)
        targetTeams = Options
    end,
