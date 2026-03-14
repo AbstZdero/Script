@@ -378,14 +378,14 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- ====== HOME TAB ======
-local HomeTab = Window:CreateTab("Home", "home")
+local HomeTab = Window:CreateTab("Home", 4483362458)
 
 local Section = HomeTab:CreateSection("Update Info")
 
 HomeTab:CreateLabel("Removed Save on Target Specifi Teams")
 
 -- ====== COMBAT TAB ======
-local CombatTab = Window:CreateTab("Combat", "crosshair")
+local CombatTab = Window:CreateTab("Combat", 4483362458)
 
 local AimToggle = CombatTab:CreateToggle({
    Name = "Silent Aim",
@@ -492,7 +492,7 @@ local FOVSlider = CombatTab:CreateSlider({
 })
 
 -- ====== VISUALS TAB ======
-local EspTab = Window:CreateTab("Visuals", "eye")
+local EspTab = Window:CreateTab("Visuals", 4483362458)
 
 EspTab:CreateToggle({
    Name = "Chams",
@@ -582,7 +582,7 @@ EspTab:CreateColorPicker({
 })
 
 -- ====== MISC TAB ======
-local MiscTab = Window:CreateTab("Misc", "box")
+local MiscTab = Window:CreateTab("Misc", 4483362458)
 
 local UnloadButton = MiscTab:CreateButton({
    Name = "Destroy UI",
