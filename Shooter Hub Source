@@ -12,8 +12,8 @@ local targetTeams = {} -- NEW: Stores selected teams to target
 
 -- Silent Aim Config
 local isEnabled = false
-local showFOV = false
-local FOV_RADIUS = 80
+local showFOV = true
+local FOV_RADIUS = 90
 local teamCheck = false 
 local wallCheck = true 
 
@@ -26,7 +26,7 @@ local espEnabled = false
 local nameEspEnabled = false
 local healthEspEnabled = false 
 local espTeamCheck = false
-local espAutoColorTeam = false -- Auto Color Team
+local espAutoColorTeam = true -- Auto Team Color
 local espHighlightColor = Color3.fromRGB(255, 0, 0)
 local espNameColor = Color3.fromRGB(255, 255, 255)
 local espFillTransparency = 0.6  
@@ -63,7 +63,7 @@ local function createEsp(player)
         highlight.Parent = espFolder
         
         local nameText = Drawing.new("Text")
-        nameText.Size = 18
+        nameText.Size = 16
         nameText.Center = true
         nameText.Outline = true
         nameText.Font = 2
@@ -370,9 +370,7 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "Loading Scripts...",
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
-      Enabled = true,        
-      FolderName = "ShooterHubConfigs",
-      FileName = "shooter"   
+      Enabled = true,
    },
    KeySystem = false
 })
@@ -382,7 +380,7 @@ local HomeTab = Window:CreateTab("Home", "home")
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Not Save on Target Specifi Teams was bug")
+HomeTab:CreateLabel("Removed Auto Save/load")
 
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", "crosshair")
@@ -419,7 +417,7 @@ local TargetEntityDropdown = CombatTab:CreateDropdown({
 local TargetPartDropdown = CombatTab:CreateDropdown({
    Name = "Target Part",
    Options = {"Head", "Torso", "Random"}, 
-   CurrentOption = {"Torso"},
+   CurrentOption = {"Head"},
    MultipleOptions = false,
    Flag = "TargetPartDropdown",
    Callback = function(Options)
@@ -431,10 +429,9 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {none},
+   CurrentOption = {},
    MultipleOptions = true
    Flag = "TargetTeamsDropdown",
-   Save = false,
    Callback = function(Options)
        targetTeams = Options
    end,
@@ -481,7 +478,7 @@ local FOVToggle = CombatTab:CreateToggle({
 
 local FOVSlider = CombatTab:CreateSlider({
    Name = "FOV Radius",
-   Range = {30, 500},
+   Range = {10, 500},
    Increment = 5,
    Suffix = "Radius",
    CurrentValue = FOV_RADIUS,
@@ -492,7 +489,7 @@ local FOVSlider = CombatTab:CreateSlider({
 })
 
 -- ====== VISUALS TAB ======
-local EspTab = Window:CreateTab("Visuals", "eye-off")
+local EspTab = Window:CreateTab("Visuals", "eye")
 
 EspTab:CreateToggle({
    Name = "Chams",
