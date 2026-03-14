@@ -371,6 +371,8 @@ local Window = Rayfield:CreateWindow({
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
       Enabled = true,
+      FolderName = "Shooter",
+      FileName = "Shooterload"
    },
    KeySystem = false
 })
@@ -380,7 +382,7 @@ local HomeTab = Window:CreateTab("Home", "home")
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Removed Auto Save/load")
+HomeTab:CreateLabel("Removed Save on Target Specifi Teams")
 
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", "crosshair")
@@ -429,9 +431,10 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {},
+   CurrentOption = {None},
    MultipleOptions = true
    Flag = "TargetTeamsDropdown",
+   Save = false
    Callback = function(Options)
        targetTeams = Options
    end,
