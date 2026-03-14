@@ -378,14 +378,14 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- ====== HOME TAB ======
-local HomeTab = Window:CreateTab("Home", 6031265976)
+local HomeTab = Window:CreateTab("Home", "home")
 
 local Section = HomeTab:CreateSection("Update Info")
 
 HomeTab:CreateLabel("Not Save on Target Specifi Teams was bug")
 
 -- ====== COMBAT TAB ======
-local CombatTab = Window:CreateTab("Combat", 6031260786)
+local CombatTab = Window:CreateTab("Combat", "crosshair")
 
 local AimToggle = CombatTab:CreateToggle({
    Name = "Silent Aim",
@@ -492,7 +492,7 @@ local FOVSlider = CombatTab:CreateSlider({
 })
 
 -- ====== VISUALS TAB ======
-local EspTab = Window:CreateTab("Visuals", 6031302912)
+local EspTab = Window:CreateTab("Visuals", "eye-off")
 
 EspTab:CreateToggle({
    Name = "Chams",
