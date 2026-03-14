@@ -366,7 +366,7 @@ end))
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Shooter Hub V1.5",
+   Name = "Shooter Hub V1.55",
    LoadingTitle = "Loading Scripts...",
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
@@ -378,14 +378,14 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- ====== HOME TAB ======
-local HomeTab = Window:CreateTab("Home", 4483362458)
+local HomeTab = Window:CreateTab("Home", 6031265976)
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Add Target Specific Team Selection")
+HomeTab:CreateLabel("Not Save on Target Specifi Teams was bug")
 
 -- ====== COMBAT TAB ======
-local CombatTab = Window:CreateTab("Combat", 4483362458)
+local CombatTab = Window:CreateTab("Combat", 6031260786)
 
 local AimToggle = CombatTab:CreateToggle({
    Name = "Silent Aim",
@@ -431,9 +431,10 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {},
-   MultipleOptions = true,
+   CurrentOption = {none},
+   MultipleOptions = true
    Flag = "TargetTeamsDropdown",
+   Save = false,
    Callback = function(Options)
        targetTeams = Options
    end,
@@ -491,7 +492,7 @@ local FOVSlider = CombatTab:CreateSlider({
 })
 
 -- ====== VISUALS TAB ======
-local EspTab = Window:CreateTab("Visuals", 4483362458)
+local EspTab = Window:CreateTab("Visuals", 6031302912)
 
 EspTab:CreateToggle({
    Name = "Chams",
