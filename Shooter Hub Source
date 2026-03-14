@@ -213,17 +213,6 @@ b.RenderStepped:Connect(function()
     end
 end)
 
--- NEW: Load current active Teams into a table
-local teamOptions = {}
-pcall(function()
-    if game:GetService("Teams") then
-        for _, team in pairs(game:GetService("Teams"):GetTeams()) do
-            table.insert(teamOptions, team.Name)
-        end
-    end
-end)
-if #teamOptions == 0 then table.insert(teamOptions, "None") end
-
 -- === NPC Background Caching ===
 local npcCache = {}
 task.spawn(function()
@@ -359,6 +348,17 @@ w = hookmetamethod(game, "__namecall", newcclosure(function(...)
     return w(...)
 end))
 
+-- Load current active Teams into a table
+local teamOptions = {}
+pcall(function()
+    if game:GetService("Teams") then
+        for _, team in pairs(game:GetService("Teams"):GetTeams()) do
+            table.insert(teamOptions, team.Name)
+        end
+    end
+end)
+if #teamOptions == 0 then table.insert(teamOptions, "None") end
+
 -- ==========================================
 -- ====== RAYFIELD UI IMPLEMENTATION ======
 -- ==========================================
@@ -378,14 +378,14 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- ====== HOME TAB ======
-local HomeTab = Window:CreateTab("Home", 4483362458)
+local HomeTab = Window:CreateTab("Home", home)
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Removed Auto Save/load")
+HomeTab:CreateLabel("Not save on Target Specifi Teams")
 
 -- ====== COMBAT TAB ======
-local CombatTab = Window:CreateTab("Combat", 4483362458)
+local CombatTab = Window:CreateTab("Combat", "crosshair")
 
 local AimToggle = CombatTab:CreateToggle({
    Name = "Silent Aim",
@@ -427,13 +427,14 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
    end,
 })
 
--- NEW: Target Team Selector
+-- Target Team Selector
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {},
+   CurrentOption = {none},
    MultipleOptions = true
    Flag = "TargetTeamsDropdown",
+   Save = false
    Callback = function(Options)
        targetTeams = Options
    end,
@@ -491,7 +492,7 @@ local FOVSlider = CombatTab:CreateSlider({
 })
 
 -- ====== VISUALS TAB ======
-local EspTab = Window:CreateTab("Visuals", 4483362458)
+local EspTab = Window:CreateTab("Visuals", "eye")
 
 EspTab:CreateToggle({
    Name = "Chams",
@@ -581,7 +582,7 @@ EspTab:CreateColorPicker({
 })
 
 -- ====== MISC TAB ======
-local MiscTab = Window:CreateTab("Misc", 4483362458)
+local MiscTab = Window:CreateTab("Misc", "box")
 
 local UnloadButton = MiscTab:CreateButton({
    Name = "Destroy UI",
