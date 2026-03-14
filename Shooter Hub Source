@@ -348,17 +348,6 @@ w = hookmetamethod(game, "__namecall", newcclosure(function(...)
     return w(...)
 end))
 
--- Load current active Teams into a table
-local teamOptions = {}
-pcall(function()
-    if game:GetService("Teams") then
-        for _, team in pairs(game:GetService("Teams"):GetTeams()) do
-            table.insert(teamOptions, team.Name)
-        end
-    end
-end)
-if #teamOptions == 0 then table.insert(teamOptions, "None") end
-
 -- ==========================================
 -- ====== RAYFIELD UI IMPLEMENTATION ======
 -- ==========================================
@@ -370,20 +359,29 @@ local Window = Rayfield:CreateWindow({
    LoadingTitle = "Loading Scripts...",
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
-      Enabled = true
-      FolderName = "ShooterSave",
-      FileName = "ShooterLoad",
+      Enabled = true,
    },
    KeySystem = false
 })
+
+-- Load current active Teams into a table
+local teamOptions = {}
+pcall(function()
+    if game:GetService("Teams") then
+        for _, team in pairs(game:GetService("Teams"):GetTeams()) do
+            table.insert(teamOptions, team.Name)
+        end
+    end
+end)
+if #teamOptions == 0 then table.insert(teamOptions, "None") end
 
 -- ====== HOME TAB ======
 local HomeTab = Window:CreateTab("Home", "home")
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Very Sorry, I fixed Rayfield UI ain't show 😅")
-HomeTab:CreateLabel("Not Save Target Specifi Teams)
+HomeTab:CreateLabel("Very Sorry, I fixed open won't Rayfield UI 😅")
+HomeTab:CreateLabel("Removed Auto Save/load")
 
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", "crosshair")
@@ -432,9 +430,8 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {"none"},
+   CurrentOption = {},
    MultipleOptions = true,
-   Save = false,
    Flag = "TargetTeamsDropdown",
    Callback = function(Options)
        targetTeams = Options
