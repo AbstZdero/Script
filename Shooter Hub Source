@@ -378,11 +378,12 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- ====== HOME TAB ======
-local HomeTab = Window:CreateTab("Home", home)
+local HomeTab = Window:CreateTab("Home", "home")
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Not save on Target Specifi Teams")
+HomeTab:CreateLabel("Sorry, I fixed Rayfield UI ain't show
+HomeTab:CreateLabel("Not save on Target Specific Teams")
 
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", "crosshair")
@@ -431,10 +432,10 @@ local TargetPartDropdown = CombatTab:CreateDropdown({
 local TargetTeamsDropdown = CombatTab:CreateDropdown({
    Name = "Target Specific Teams",
    Options = teamOptions,
-   CurrentOption = {none},
-   MultipleOptions = true
+   CurrentOption = {"None"},
+   MultipleOptions = true,
    Flag = "TargetTeamsDropdown",
-   Save = false
+   Save = false,
    Callback = function(Options)
        targetTeams = Options
    end,
