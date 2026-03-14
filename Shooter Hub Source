@@ -579,7 +579,7 @@ EspTab:CreateColorPicker({
 })
 
 -- ====== MISC TAB ======
-local MiscTab = Window:CreateTab("Misc", 4483362458)
+local MiscTab = Window:CreateTab("Misc", "box")
 
 local UnloadButton = MiscTab:CreateButton({
    Name = "Destroy UI",
