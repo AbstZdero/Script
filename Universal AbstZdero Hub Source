@@ -1,0 +1,180 @@
+-- Wait for game to load
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- ESP State Variables
+local ESP_SETTINGS = {
+    Players = false,
+    Names = false,
+    Studs = false,
+    Health = false,
+    HighlightColor = Color3.fromRGB(255, 0, 0),
+    TextColor = Color3.fromRGB(255, 255, 255)
+}
+
+-- Load Rayfield UI Library
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Create Window
+local Window = Rayfield:CreateWindow({
+   Name = "AbstZdero Hub | Universal",
+   LoadingTitle = "Loading AbstZdero Hub...",
+   LoadingSubtitle = "by You",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil,
+      FileName = "AbstZderoHub"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "", 
+      RememberJoins = true 
+   },
+   KeySystem = false, 
+})
+
+-- Create Visual Tab
+local VisualTab = Window:CreateTab("Visual", "eye")
+
+-- == UI ELEMENTS ==
+
+VisualTab:CreateToggle({
+   Name = "ESP Players (Highlights)",
+   CurrentValue = false,
+   Flag = "ESP_Players", 
+   Callback = function(Value)
+      ESP_SETTINGS.Players = Value
+   end,
+})
+
+VisualTab:CreateToggle({
+   Name = "ESP Names",
+   CurrentValue = false,
+   Flag = "ESP_Names",
+   Callback = function(Value)
+      ESP_SETTINGS.Names = Value
+   end,
+})
+
+VisualTab:CreateToggle({
+   Name = "ESP Studs",
+   CurrentValue = false,
+   Flag = "ESP_Studs",
+   Callback = function(Value)
+      ESP_SETTINGS.Studs = Value
+   end,
+})
+
+VisualTab:CreateToggle({
+   Name = "ESP Health",
+   CurrentValue = false,
+   Flag = "ESP_Health",
+   Callback = function(Value)
+      ESP_SETTINGS.Health = Value
+   end,
+})
+
+VisualTab:CreateColorPicker({
+    Name = "Color Picker for Highlights",
+    Color = Color3.fromRGB(255, 0, 0),
+    Flag = "Highlight_Color",
+    Callback = function(Value)
+        ESP_SETTINGS.HighlightColor = Value
+    end
+})
+
+VisualTab:CreateColorPicker({
+    Name = "Color Picker for Names text",
+    Color = Color3.fromRGB(255, 255, 255),
+    Flag = "Text_Color",
+    Callback = function(Value)
+        ESP_SETTINGS.TextColor = Value
+    end
+})
+
+-- == ESP LOGIC & RENDERING ==
+
+RunService.RenderStepped:Connect(function()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local char = player.Character
+            
+            -- Ensure player has a character and is alive
+            if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
+                
+                -- 1. Handling Player Highlights
+                local highlight = char:FindFirstChild("AbstZdero_Highlight")
+                if ESP_SETTINGS.Players then
+                    if not highlight then
+                        highlight = Instance.new("Highlight")
+                        highlight.Name = "AbstZdero_Highlight"
+                        highlight.Parent = char
+                        highlight.FillTransparency = 0.5
+                        highlight.OutlineTransparency = 0.1
+                    end
+                    highlight.FillColor = ESP_SETTINGS.HighlightColor
+                    highlight.OutlineColor = ESP_SETTINGS.HighlightColor
+                else
+                    if highlight then highlight:Destroy() end
+                end
+
+                -- 2. Handling Names, Studs, and Health (Text ESP)
+                local head = char:FindFirstChild("Head")
+                if head then
+                    local bgui = head:FindFirstChild("AbstZdero_TextESP")
+                    
+                    if ESP_SETTINGS.Names or ESP_SETTINGS.Studs or ESP_SETTINGS.Health then
+                        if not bgui then
+                            bgui = Instance.new("BillboardGui")
+                            bgui.Name = "AbstZdero_TextESP"
+                            bgui.Parent = head
+                            bgui.Size = UDim2.new(0, 200, 0, 50)
+                            bgui.StudsOffset = Vector3.new(0, 3, 0)
+                            bgui.AlwaysOnTop = true
+
+                            local textLabel = Instance.new("TextLabel")
+                            textLabel.Parent = bgui
+                            textLabel.Size = UDim2.new(1, 0, 1, 0)
+                            textLabel.BackgroundTransparency = 1
+                            textLabel.TextStrokeTransparency = 0.2 -- Small black outline for visibility
+                            textLabel.Font = Enum.Font.Code
+                            textLabel.TextSize = 14
+                        end
+
+                        local textLabel = bgui.TextLabel
+                        textLabel.TextColor3 = ESP_SETTINGS.TextColor
+
+                        local displayText = ""
+                        
+                        -- Add Name
+                        if ESP_SETTINGS.Names then
+                            displayText = displayText .. player.Name .. "\n"
+                        end
+                        
+                        -- Add Studs
+                        if ESP_SETTINGS.Studs and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            local distance = (LocalPlayer.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+                            displayText = displayText .. "[" .. math.floor(distance) .. " Studs]\n"
+                        end
+                        
+                        -- Add Health
+                        if ESP_SETTINGS.Health then
+                            displayText = displayText .. "[HP: " .. math.floor(char.Humanoid.Health) .. "/" .. math.floor(char.Humanoid.MaxHealth) .. "]"
+                        end
+                        
+                        textLabel.Text = displayText
+                    else
+                        -- Destroy the text GUI if none of the text options are toggled
+                        if bgui then bgui:Destroy() end
+                    end
+                end
+            end
+        end
+    end
+end)
