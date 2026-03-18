@@ -13,7 +13,7 @@ local targetTeams = {} -- NEW: Stores selected teams to target
 -- Silent Aim Config
 local isEnabled = true
 local showFOV = true
-local FOV_RADIUS = 90
+local FOV_RADIUS = 100
 local teamCheck = false 
 local wallCheck = true 
 
