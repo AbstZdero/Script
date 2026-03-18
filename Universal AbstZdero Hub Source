@@ -7,16 +7,31 @@ end
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 -- ESP State Variables
 local ESP_SETTINGS = {
     Players = false,
+    Box = false, -- Added Box ESP State
     Names = false,
     Studs = false,
     Health = false,
     HighlightColor = Color3.fromRGB(255, 0, 0),
-    TextColor = Color3.fromRGB(255, 255, 255)
+    TextColor = Color3.fromRGB(255, 255, 255),
+    FillTransparency = 0.5, -- Added Fill Transparency State
+    OutlineTransparency = 0.1 -- Added Outline Transparency State
 }
+
+-- Table to store Drawing API boxes
+local ESP_Boxes = {}
+
+-- Clean up drawings when a player leaves to prevent memory leaks
+Players.PlayerRemoving:Connect(function(player)
+    if ESP_Boxes[player] then
+        ESP_Boxes[player]:Remove()
+        ESP_Boxes[player] = nil
+    end
+end)
 
 -- Load Rayfield UI Library
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -25,9 +40,9 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "AbstZdero Hub | Universal",
    LoadingTitle = "Loading AbstZdero Hub...",
-   LoadingSubtitle = "by You",
+   LoadingSubtitle = "Made by Zderonao",
    ConfigurationSaving = {
-      Enabled = false,
+      Enabled = true,
       FolderName = nil,
       FileName = "AbstZderoHub"
    },
@@ -52,6 +67,15 @@ VisualTab:CreateToggle({
       ESP_SETTINGS.Players = Value
    end,
 })
+
+VisualTab:CreateToggle({
+    Name = "ESP Box (2D)",
+    CurrentValue = false,
+    Flag = "ESP_Box", 
+    Callback = function(Value)
+       ESP_SETTINGS.Box = Value
+    end,
+ })
 
 VisualTab:CreateToggle({
    Name = "ESP Names",
@@ -80,8 +104,32 @@ VisualTab:CreateToggle({
    end,
 })
 
+VisualTab:CreateSlider({
+    Name = "Fill Transparency (Highlights)",
+    Range = {0, 1},
+    Increment = 0.05,
+    Suffix = "",
+    CurrentValue = 0.5,
+    Flag = "Fill_Transparency",
+    Callback = function(Value)
+       ESP_SETTINGS.FillTransparency = Value
+    end,
+ })
+ 
+ VisualTab:CreateSlider({
+    Name = "Outline Transparency (Highlights)",
+    Range = {0, 1},
+    Increment = 0.05,
+    Suffix = "",
+    CurrentValue = 0.1,
+    Flag = "Outline_Transparency",
+    Callback = function(Value)
+       ESP_SETTINGS.OutlineTransparency = Value
+    end,
+ })
+
 VisualTab:CreateColorPicker({
-    Name = "Color Picker for Highlights",
+    Name = "Color Picker for Highlights/Boxes",
     Color = Color3.fromRGB(255, 0, 0),
     Flag = "Highlight_Color",
     Callback = function(Value)
@@ -90,7 +138,7 @@ VisualTab:CreateColorPicker({
 })
 
 VisualTab:CreateColorPicker({
-    Name = "Color Picker for Names text",
+    Name = "Color Picker for All Text",
     Color = Color3.fromRGB(255, 255, 255),
     Flag = "Text_Color",
     Callback = function(Value)
@@ -104,6 +152,18 @@ RunService.RenderStepped:Connect(function()
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             local char = player.Character
+
+            -- Ensure drawing object exists for the player
+            if not ESP_Boxes[player] then
+                local box = Drawing.new("Square")
+                box.Visible = false
+                box.Color = ESP_SETTINGS.HighlightColor
+                box.Thickness = 1.5
+                box.Filled = false
+                ESP_Boxes[player] = box
+            end
+
+            local box = ESP_Boxes[player]
             
             -- Ensure player has a character and is alive
             if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid") and char.Humanoid.Health > 0 then
@@ -115,16 +175,41 @@ RunService.RenderStepped:Connect(function()
                         highlight = Instance.new("Highlight")
                         highlight.Name = "AbstZdero_Highlight"
                         highlight.Parent = char
-                        highlight.FillTransparency = 0.5
-                        highlight.OutlineTransparency = 0.1
                     end
+                    -- Apply dynamically chosen colors and transparencies
                     highlight.FillColor = ESP_SETTINGS.HighlightColor
                     highlight.OutlineColor = ESP_SETTINGS.HighlightColor
+                    highlight.FillTransparency = ESP_SETTINGS.FillTransparency
+                    highlight.OutlineTransparency = ESP_SETTINGS.OutlineTransparency
                 else
                     if highlight then highlight:Destroy() end
                 end
 
-                -- 2. Handling Names, Studs, and Health (Text ESP)
+                -- 2. Handling 2D ESP Box
+                if ESP_SETTINGS.Box then
+                    local rootPart = char.HumanoidRootPart
+                    local rootPos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+
+                    if onScreen then
+                        -- Calculate standard top and bottom character points to form an accurate box
+                        local topPos = Camera:WorldToViewportPoint(rootPart.Position + Vector3.new(0, 3, 0))
+                        local bottomPos = Camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0, 3.5, 0))
+
+                        local height = math.abs(topPos.Y - bottomPos.Y)
+                        local width = height * 0.6 -- Average avatar aspect ratio
+
+                        box.Size = Vector2.new(width, height)
+                        box.Position = Vector2.new(rootPos.X - (width / 2), topPos.Y)
+                        box.Color = ESP_SETTINGS.HighlightColor
+                        box.Visible = true
+                    else
+                        box.Visible = false
+                    end
+                else
+                    box.Visible = false
+                end
+
+                -- 3. Handling Names, Studs, and Health (Text ESP)
                 local head = char:FindFirstChild("Head")
                 if head then
                     local bgui = head:FindFirstChild("AbstZdero_TextESP")
@@ -174,6 +259,9 @@ RunService.RenderStepped:Connect(function()
                         if bgui then bgui:Destroy() end
                     end
                 end
+            else
+                -- If dead/despawned, clean up Drawings
+                if box then box.Visible = false end
             end
         end
     end
