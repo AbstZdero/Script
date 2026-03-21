@@ -65,7 +65,7 @@ local Window = Rayfield:CreateWindow({
 
 -- == TABS ==
 local VisualTab = Window:CreateTab("Visual", "eye")
-local PlayerTab = Window:CreateTab("Player", "user") -- Added Player Tab
+local PlayerTab = Window:CreateTab("LocalPlayer", "user") -- Added Player Tab
 
 -- == VISUAL UI ELEMENTS ==
 
