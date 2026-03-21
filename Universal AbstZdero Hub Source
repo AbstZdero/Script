@@ -6,20 +6,29 @@ end
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- ESP State Variables
+-- State Variables
 local ESP_SETTINGS = {
     Players = false,
-    Box = false, -- Added Box ESP State
+    Box = false,
     Names = false,
     Studs = false,
     Health = false,
     HighlightColor = Color3.fromRGB(255, 0, 0),
     TextColor = Color3.fromRGB(255, 255, 255),
-    FillTransparency = 0.5, -- Added Fill Transparency State
-    OutlineTransparency = 0.1 -- Added Outline Transparency State
+    FillTransparency = 0.5,
+    OutlineTransparency = 0.1
+}
+
+local PLAYER_SETTINGS = {
+    WalkspeedToggle = false,
+    LoopWalkspeed = false,
+    WalkspeedValue = 16,
+    InfiniteJump = false,
+    Noclip = false
 }
 
 -- Table to store Drawing API boxes
@@ -54,10 +63,11 @@ local Window = Rayfield:CreateWindow({
    KeySystem = false, 
 })
 
--- Create Visual Tab
+-- == TABS ==
 local VisualTab = Window:CreateTab("Visual", "eye")
+local PlayerTab = Window:CreateTab("Player", "user") -- Added Player Tab
 
--- == UI ELEMENTS ==
+-- == VISUAL UI ELEMENTS ==
 
 VisualTab:CreateToggle({
    Name = "ESP Players (Highlights)",
@@ -146,8 +156,71 @@ VisualTab:CreateColorPicker({
     end
 })
 
--- == ESP LOGIC & RENDERING ==
+-- == PLAYER UI ELEMENTS ==
 
+PlayerTab:CreateInput({
+   Name = "Walkspeed Input",
+   PlaceholderText = "Enter Walkspeed (e.g. 50)",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+      local value = tonumber(Text)
+      if value then
+          PLAYER_SETTINGS.WalkspeedValue = value
+          -- Instantly apply if standard toggle is on
+          if PLAYER_SETTINGS.WalkspeedToggle and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+              LocalPlayer.Character.Humanoid.WalkSpeed = PLAYER_SETTINGS.WalkspeedValue
+          end
+      end
+   end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Enable Walkspeed",
+   CurrentValue = false,
+   Flag = "WalkspeedToggle",
+   Callback = function(Value)
+      PLAYER_SETTINGS.WalkspeedToggle = Value
+      if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+          if Value then
+              LocalPlayer.Character.Humanoid.WalkSpeed = PLAYER_SETTINGS.WalkspeedValue
+          else
+              LocalPlayer.Character.Humanoid.WalkSpeed = 16 -- Reset to default
+          end
+      end
+   end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Loop Walkspeed (Bypass Anticheat/Resets)",
+   CurrentValue = false,
+   Flag = "LoopWalkspeed",
+   Callback = function(Value)
+      PLAYER_SETTINGS.LoopWalkspeed = Value
+   end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Flag = "InfiniteJump",
+   Callback = function(Value)
+      PLAYER_SETTINGS.InfiniteJump = Value
+   end,
+})
+
+PlayerTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "Noclip",
+   Callback = function(Value)
+      PLAYER_SETTINGS.Noclip = Value
+   end,
+})
+
+
+-- == MAIN LOGIC & RENDERING ==
+
+--[ESP Logic (Runs after physics/rendering frame)]
 RunService.RenderStepped:Connect(function()
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
@@ -263,6 +336,39 @@ RunService.RenderStepped:Connect(function()
                 -- If dead/despawned, clean up Drawings
                 if box then box.Visible = false end
             end
+        end
+    end
+end)
+
+
+--[Player Logic (Runs before physics simulate to prevent stutters for things like Noclip)]
+RunService.Stepped:Connect(function()
+    local char = LocalPlayer.Character
+
+    -- Loop Walkspeed Logic
+    if PLAYER_SETTINGS.LoopWalkspeed and char then
+        local humanoid = char:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = PLAYER_SETTINGS.WalkspeedValue
+        end
+    end
+
+    -- Noclip Logic
+    if PLAYER_SETTINGS.Noclip and char then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide == true then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- [Infinite Jump Logic]
+UserInputService.JumpRequest:Connect(function()
+    if PLAYER_SETTINGS.InfiniteJump and LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+        if humanoid and humanoid.Health > 0 then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end
 end)
