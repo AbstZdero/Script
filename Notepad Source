@@ -110,13 +110,22 @@ end)
 execBtn.MouseButton1Click:Connect(function()
     local code = box.Text
 
-    if code and code ~= "" then
-        local func, err = loadstring(code)
-        if func then
-            pcall(func)
-        else
-            warn("Execution Error: ".. tostring(err))
+    if not code or code == "" then
+        warn("No code to execute")
+        return
+    end
+
+    local success, result = pcall(function()
+        return loadstring(code)
+    end)
+
+    if success and result then
+        local runSuccess, err = pcall(result)
+        if not runSuccess then
+            warn("Runtime Error: ".. tostring(err))
         end
+    else
+        warn("Compile Error: ".. tostring(result))
     end
 end)
 
