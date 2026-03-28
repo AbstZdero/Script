@@ -57,7 +57,7 @@ toggle.Image = "rbxassetid://88667369403052"
 toggle.Active = true
 toggle.Draggable = true
 
-Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
+Instance.new("UICorner", toggle).CornerRadius = UDim.new(0.1, 0)
 
 -- Auto Resize Canvas when typing
 local function updateCanvas()
