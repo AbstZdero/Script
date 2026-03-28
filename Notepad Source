@@ -137,155 +137,17 @@ end)
 -- TOGGLE IMAGE BUTTON
 local toggle = Instance.new("ImageButton")
 toggle.Parent = gui
-toggle.Size = UDim2.new(0, 60, 0, 60)
+toggle.Size = UDim2.new(0, 45, 0, 45)
 toggle.Position = UDim2.new(0, 20, 0.5, -30)
 toggle.BackgroundTransparency = 1
 toggle.Image = "rbxassetid://88667369403052"
 toggle.Active = true
 toggle.Draggable = true
-Instance.new("UICorner", toggle).CornerRadius = UDim.new(0.1, 0)
+Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
 
 -- TOGGLE FUNCTION (SUPER STABLE)
 toggle.MouseButton1Click:Connect(function()
     frame.Visible = not frame.Visible
-end)
-
-updateCanvas()box.Size = UDim2.new(1, -5, 0, 170)
-box.Position = UDim2.new(0, 5, 0, 5)
-box.BackgroundTransparency = 1
-box.TextColor3 = Color3.fromRGB(0, 0, 0)
-box.Font = Enum.Font.Code
-box.TextSize = 16
-box.Text = ""
-box.PlaceholderText = "Write Message Here.."
-box.TextWrapped = true
-box.TextYAlignment = Enum.TextYAlignment.Top
-box.MultiLine = true
-box.ClearTextOnFocus = false
-box.TextXAlignment = Enum.TextXAlignment.Left
-
--- Toggle Image Button
-local toggle = Instance.new("ImageButton", gui)
-toggle.Size = UDim2.new(0, 60, 0, 60)
-toggle.Position = UDim2.new(0, 20, 0.5, -30)
-toggle.BackgroundTransparency = 1
-toggle.Image = "rbxassetid://88667369403052"
-toggle.Active = true
-toggle.Draggable = true
-
-Instance.new("UICorner", toggle).CornerRadius = UDim.new(0.1, 0)
-
--- Auto Resize Canvas when typing
-local function updateCanvas()
-    local textSize = game:GetService("TextService"):GetTextSize(
-        box.Text,
-        box.TextSize,
-        box.Font,
-        Vector2.new(scroll.AbsoluteSize.X - 10, math.huge)
-    )
-
-    box.Size = UDim2.new(1, -10, 0, textSize.Y + 20)
-    scroll.CanvasSize = UDim2.new(0, 0, 0, box.AbsoluteSize.Y + 10)
-end
-
-box:GetPropertyChangedSignal("Text"):Connect(updateCanvas)
-
--- Button creator
-local function makeButton(name, pos, text)
-	local btn = Instance.new("TextButton", frame)
-	btn.Name = name
-	btn.Size = UDim2.new(0.23, 0, 0, 30)
-	btn.Position = pos
-	btn.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
-	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(0, 0, 0)
-	btn.Font = Enum.Font.SourceSansBold
-	btn.TextSize = 14
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-	return btn
-end
-
-local saveBtn = makeButton("Save", UDim2.new(0.04, 0, 1, -35), "Save")
-local loadBtn = makeButton("Load", UDim2.new(0.27, 0, 1, -35), "Load")
-local copyBtn = makeButton("Copy", UDim2.new(0.50, 0, 1, -35), "Copy")
-local execBtn = makeButton("Execute", UDim2.new(0.27, 0, 1, -70), "Execute")
-local destroyBtn = makeButton("Destroy", UDim2.new(0.73, 0, 1, -35), "X")
-local deleteBtn = makeButton("Delete", UDim2.new(0.04, 0, 1, -70), "Delete")
-
-local fileName = "notepad_save.txt"
-
--- Functions
-saveBtn.MouseButton1Click:Connect(function()
-	if writefile then
-		writefile(fileName, box.Text)
-	end
-end)
-
-loadBtn.MouseButton1Click:Connect(function()
-	if isfile and isfile(fileName) then
-		box.Text = readfile(fileName)
-		updateCanvas()
-	end
-end)
-
-copyBtn.MouseButton1Click:Connect(function()
-	if setclipboard then
-		setclipboard(box.Text)
-	end
-end)
-
-execBtn.MouseButton1Click:Connect(function()
-    local code = box.Text
-
-    if not code or code == "" then
-        warn("No code to execute")
-        return
-    end
-
-    local success, result = pcall(function()
-        return loadstring(code)
-    end)
-
-    if success and result then
-        local runSuccess, err = pcall(result)
-        if not runSuccess then
-            warn("Runtime Error: ".. tostring(err))
-        end
-    else
-        warn("Compile Error: ".. tostring(result))
-    end
-end)
-
-deleteBtn.MouseButton1Click:Connect(function()
-	box.Text = ""
-	updateCanvas()
-end)
-
-destroyBtn.MouseButton1Click:Connect(function()
-	gui:Destroy()
-end)
-
-local opened = true
-
-toggle.MouseButton1Click:Connect(function()
-    opened = not opened
-    frame.Visible = opened
-end)
-
-local TweenService = game:GetService("TweenService")
-
-toggle.MouseButton1Click:Connect(function()
-    opened = not opened
-    
-    if opened then
-        frame.Visible = true
-        TweenService:Create(frame, TweenInfo.new(0.25), {Size = UDim2.new(0,320,0,300)}):Play()
-    else
-        local tween = TweenService:Create(frame, TweenInfo.new(0.25), {Size = UDim2.new(0,0,0,0)})
-        tween:Play()
-        tween.Completed:Wait()
-        frame.Visible = false
-    end
 end)
 
 updateCanvas()
