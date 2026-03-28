@@ -81,6 +81,7 @@ end
 local saveBtn = makeButton("Save", UDim2.new(0.04, 0, 1, -35), "Save")
 local loadBtn = makeButton("Load", UDim2.new(0.27, 0, 1, -35), "Load")
 local copyBtn = makeButton("Copy", UDim2.new(0.50, 0, 1, -35), "Copy")
+local execBtn = makeButton("Execute", UDim2.new(0.27, 0, 1, -70), "Execute")
 local destroyBtn = makeButton("Destroy", UDim2.new(0.73, 0, 1, -35), "X")
 local deleteBtn = makeButton("Delete", UDim2.new(0.04, 0, 1, -70), "Delete")
 
@@ -104,6 +105,19 @@ copyBtn.MouseButton1Click:Connect(function()
 	if setclipboard then
 		setclipboard(box.Text)
 	end
+end)
+
+execBtn.MouseButton1Click:Connect(function()
+    local code = box.Text
+
+    if code and code ~= "" then
+        local func, err = loadstring(code)
+        if func then
+            pcall(func)
+        else
+            warn("Execution Error: ".. tostring(err))
+        end
+    end
 end)
 
 deleteBtn.MouseButton1Click:Connect(function()
