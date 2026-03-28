@@ -48,6 +48,17 @@ box.MultiLine = true
 box.ClearTextOnFocus = false
 box.TextXAlignment = Enum.TextXAlignment.Left
 
+-- Toggle Image Button
+local toggle = Instance.new("ImageButton", gui)
+toggle.Size = UDim2.new(0, 60, 0, 60)
+toggle.Position = UDim2.new(0, 20, 0.5, -30)
+toggle.BackgroundTransparency = 1
+toggle.Image = "rbxassetid://88667369403052"
+toggle.Active = true
+toggle.Draggable = true
+
+Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
+
 -- Auto Resize Canvas when typing
 local function updateCanvas()
     local textSize = game:GetService("TextService"):GetTextSize(
@@ -136,6 +147,29 @@ end)
 
 destroyBtn.MouseButton1Click:Connect(function()
 	gui:Destroy()
+end)
+
+local opened = true
+
+toggle.MouseButton1Click:Connect(function()
+    opened = not opened
+    frame.Visible = opened
+end)
+
+local TweenService = game:GetService("TweenService")
+
+toggle.MouseButton1Click:Connect(function()
+    opened = not opened
+    
+    if opened then
+        frame.Visible = true
+        TweenService:Create(frame, TweenInfo.new(0.25), {Size = UDim2.new(0,320,0,300)}):Play()
+    else
+        local tween = TweenService:Create(frame, TweenInfo.new(0.25), {Size = UDim2.new(0,0,0,0)})
+        tween:Play()
+        tween.Completed:Wait()
+        frame.Visible = false
+    end
 end)
 
 updateCanvas()
