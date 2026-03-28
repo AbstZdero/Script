@@ -137,7 +137,7 @@ end)
 -- TOGGLE IMAGE BUTTON
 local toggle = Instance.new("ImageButton")
 toggle.Parent = gui
-toggle.Size = UDim2.new(0, 45, 0, 45)
+toggle.Size = UDim2.new(0, 50, 0, 50)
 toggle.Position = UDim2.new(0, 20, 0.5, -30)
 toggle.BackgroundTransparency = 1
 toggle.Image = "rbxassetid://114709776622678"
