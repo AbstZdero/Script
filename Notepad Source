@@ -137,13 +137,13 @@ end)
 -- TOGGLE IMAGE BUTTON
 local toggle = Instance.new("ImageButton")
 toggle.Parent = gui
-toggle.Size = UDim2.new(0, 40, 0, 40)
+toggle.Size = UDim2.new(0, 45, 0, 45)
 toggle.Position = UDim2.new(0, 20, 0.5, -30)
 toggle.BackgroundTransparency = 1
 toggle.Image = "rbxassetid://88667369403052"
 toggle.Active = true
 toggle.Draggable = true
-Instance.new("UICorner", toggle).CornerRadius = UDim.new(0.2, 0)
+Instance.new("UICorner", toggle).CornerRadius = UDim.new(0, 16)
 
 -- TOGGLE FUNCTION (SUPER STABLE)
 toggle.MouseButton1Click:Connect(function()
