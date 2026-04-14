@@ -131,7 +131,7 @@ VisualTab:CreateSlider({
     Range = {0, 1},
     Increment = 0.05,
     Suffix = "",
-    CurrentValue = 0.1,
+    CurrentValue = 1,
     Flag = "Outline_Transparency",
     Callback = function(Value)
        ESP_SETTINGS.OutlineTransparency = Value
@@ -140,7 +140,7 @@ VisualTab:CreateSlider({
 
 VisualTab:CreateColorPicker({
     Name = "Color Picker for Highlights/Boxes",
-    Color = Color3.fromRGB(255, 0, 0),
+    Color = Color3.fromRGB(255, 255, 0),
     Flag = "Highlight_Color",
     Callback = function(Value)
         ESP_SETTINGS.HighlightColor = Value
