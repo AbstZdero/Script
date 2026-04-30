@@ -17,10 +17,10 @@ local ESP_SETTINGS = {
     Names = false,
     Studs = false,
     Health = false,
-    HighlightColor = Color3.fromRGB(255, 0, 0),
+    HighlightColor = Color3.fromRGB(255, 255, 0),
     TextColor = Color3.fromRGB(255, 255, 255),
-    FillTransparency = 0.5,
-    OutlineTransparency = 0.1
+    FillTransparency = 0.6,
+    OutlineTransparency = 1
 }
 
 local PLAYER_SETTINGS = {
