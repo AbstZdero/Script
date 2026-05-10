@@ -7,7 +7,7 @@ local e = nil
 -- === Configuration Variables ===
 -- Target & Entity Config
 local targetTypes = {"Player"} -- Can contain "Player", "Npc", or both
-local targetPartSelection = "HumanoidRootPart" 
+local targetPartSelection = "Head" 
 local targetTeams = {} -- NEW: Stores selected teams to target
 
 -- Silent Aim Config
@@ -216,7 +216,7 @@ end)
 -- === NPC Background Caching ===
 local npcCache = {}
 task.spawn(function()
-    while task.wait(2) do
+    while task.wait(3) do
         if table.find(targetTypes, "Npc") then
             local newCache = {}
             for _, v in pairs(workspace:GetDescendants()) do
