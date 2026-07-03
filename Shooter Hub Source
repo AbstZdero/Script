@@ -399,10 +399,10 @@ if #teamOptions == 0 then table.insert(teamOptions, "None") end
 -- ====== UPDATE INFO ======
 local UpdateInfoTab = Window:CreateTab("Update Info", "info")
 
-local Section = HomeTab:CreateSection("Update Info")
-
 UpdateInfoTab:CreateLabel("Added ForceField Check")
+
 UpdateInfoTab:CreateLabel("Added Ignore Friends")
+
 UpdateInfoTab:CreateLabel("Added Ignore Players (Selector)")
 
 -- ====== COMBAT TAB ======
