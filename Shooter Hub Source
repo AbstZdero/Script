@@ -8,7 +8,10 @@ local e = nil
 -- Target & Entity Config
 local targetTypes = {"Player"} -- Can contain "Player", "Npc", or both
 local targetPartSelection = "Head" 
-local targetTeams = {} -- NEW: Stores selected teams to target
+local targetTeams = {} -- Stores selected teams to target
+local ignoredUsernames = {} -- NEW: Stores selected players to ignore
+local ignoreFriends = false -- NEW: Ignore friends toggle
+local forceFieldCheck = false -- NEW: ForceField check toggle
 
 -- Silent Aim Config
 local isEnabled = true
@@ -43,7 +46,7 @@ pcall(function()
     fovCircle.Visible = false
 end)
 
--- === ESP Setup & Logic ===
+-- === ESP Setup & Friends Cache Logic ===
 local espFolder = Instance.new("Folder")
 espFolder.Name = "SilentAimESP"
 pcall(function()
@@ -54,6 +57,7 @@ if not espFolder.Parent then
 end
 
 local espCache = {}
+local friendsCache = {} -- NEW: Cache for friend status so we don't lag the game
 
 local function createEsp(player)
     if not espCache[player] then
@@ -97,16 +101,25 @@ end
 for _, player in pairs(a:GetPlayers()) do
     if player ~= d then
         createEsp(player)
+        task.spawn(function()
+            pcall(function() friendsCache[player.UserId] = d:IsFriendsWith(player.UserId) end)
+        end)
     end
 end
 
 a.PlayerAdded:Connect(function(player)
     if player ~= d then
         createEsp(player)
+        task.spawn(function()
+            pcall(function() friendsCache[player.UserId] = d:IsFriendsWith(player.UserId) end)
+        end)
     end
 end)
 
-a.PlayerRemoving:Connect(removeEsp)
+a.PlayerRemoving:Connect(function(player)
+    removeEsp(player)
+    friendsCache[player.UserId] = nil
+end)
 
 -- RenderStepped for FOV Circle, ESP, and Camera Lock
 b.RenderStepped:Connect(function()
@@ -248,8 +261,13 @@ local function f()
             if k == d then continue end
             if teamCheck and d.Team ~= nil and k.Team == d.Team then continue end
             
-            -- NEW: Target Teams specific filter
-            -- If you have chosen specific teams to target, it skips players who aren't on those teams.
+            -- NEW: Ignore Friends Check
+            if ignoreFriends and friendsCache[k.UserId] then continue end
+            
+            -- NEW: Ignore Selector Check (Username)
+            if #ignoredUsernames > 0 and table.find(ignoredUsernames, k.Name) then continue end
+            
+            -- Target Teams specific filter
             if #targetTeams > 0 then
                 if k.Team == nil or not table.find(targetTeams, k.Team.Name) then
                     continue 
@@ -270,6 +288,9 @@ local function f()
 
     -- 3. Calculate closest target
     for _, l in pairs(potentialTargets) do
+        -- NEW: ForceField Check (Applies to both Players and NPCs)
+        if forceFieldCheck and l:FindFirstChildOfClass("ForceField") then continue end
+
         local m = l:FindFirstChild("Humanoid")
         if not m or m.Health <= 0 or m:GetState() == Enum.HumanoidStateType.Dead then continue end
         
@@ -355,7 +376,7 @@ end))
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Shooter Hub V1.55",
+   Name = "Shooter Hub V1.9",
    LoadingTitle = "Loading Scripts...",
    LoadingSubtitle = "made by Zderonao",
    ConfigurationSaving = {
@@ -375,13 +396,14 @@ pcall(function()
 end)
 if #teamOptions == 0 then table.insert(teamOptions, "None") end
 
--- ====== HOME TAB ======
-local HomeTab = Window:CreateTab("Home", "home")
+-- ====== UPDATE INFO ======
+local UpdateInfoTab = Window:CreateTab("Update Info", "info")
 
 local Section = HomeTab:CreateSection("Update Info")
 
-HomeTab:CreateLabel("Very Sorry, I fixed open won't Rayfield UI 😅")
-HomeTab:CreateLabel("Removed Auto Save/load")
+UpdateInfoTab:CreateLabel("Added ForceField Check")
+UpdateInfoTab:CreateLabel("Added Ignore Friends")
+UpdateInfoTab:CreateLabel("Added Ignore Players (Selector)")
 
 -- ====== COMBAT TAB ======
 local CombatTab = Window:CreateTab("Combat", "crosshair")
@@ -456,6 +478,58 @@ local TeamCheckToggle = CombatTab:CreateToggle({
    Flag = "TeamCheckToggle",
    Callback = function(Value)
        teamCheck = Value
+   end,
+})
+
+-- NEW: Ignore Friends Toggle
+local IgnoreFriendsToggle = CombatTab:CreateToggle({
+   Name = "Ignore Friends",
+   CurrentValue = ignoreFriends,
+   Flag = "IgnoreFriendsToggle",
+   Callback = function(Value)
+       ignoreFriends = Value
+   end,
+})
+
+-- NEW: Multi-Select Ignore Players (Updates automatically)
+local playerNames = {}
+for _, p in ipairs(a:GetPlayers()) do
+    if p ~= d then table.insert(playerNames, p.Name) end
+end
+
+local IgnorePlayersDropdown = CombatTab:CreateDropdown({
+    Name = "Ignore Players (Selector)",
+    Options = playerNames,
+    CurrentOption = {},
+    MultipleOptions = true,
+    Flag = "IgnorePlayersDropdown",
+    Callback = function(Options)
+        ignoredUsernames = Options
+    end,
+})
+
+a.PlayerAdded:Connect(function(player)
+    if player ~= d then
+        table.insert(playerNames, player.Name)
+        IgnorePlayersDropdown:Refresh(playerNames)
+    end
+end)
+
+a.PlayerRemoving:Connect(function(player)
+    local index = table.find(playerNames, player.Name)
+    if index then
+        table.remove(playerNames, index)
+        IgnorePlayersDropdown:Refresh(playerNames)
+    end
+end)
+
+-- NEW: ForceField Check Toggle
+local ForceFieldToggle = CombatTab:CreateToggle({
+   Name = "ForceField Check",
+   CurrentValue = forceFieldCheck,
+   Flag = "ForceFieldCheckToggle",
+   Callback = function(Value)
+       forceFieldCheck = Value
    end,
 })
 
