@@ -157,6 +157,15 @@ plusBtn.BackgroundColor3 = Color3.fromRGB(0,170,0)
 plusBtn.TextColor3 = Color3.new(1,1,1)
 plusBtn.Parent = frame
 
+-- ++ Button
+local plus5Btn = Instance.new("TextButton")
+plus5Btn.Size = UDim2.new(0, 40, 0, 30)
+plus5Btn.Position = UDim2.new(0.8, 45, 0.7, 0)
+plus5Btn.Text = "++"
+plus5Btn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+plus5Btn.TextColor3 = Color3.new(1,1,1)
+plus5Btn.Parent = frame
+
 -- - Button
 local minusBtn = Instance.new("TextButton")
 minusBtn.Size = UDim2.new(0, 40, 0, 30)
@@ -165,6 +174,35 @@ minusBtn.Text = "-"
 minusBtn.BackgroundColor3 = Color3.fromRGB(170,0,0)
 minusBtn.TextColor3 = Color3.new(1,1,1)
 minusBtn.Parent = frame
+
+-- -- Button
+local minus5Btn = Instance.new("TextButton")
+minus5Btn.Size = UDim2.new(0, 40, 0, 30)
+minus5Btn.Position = UDim2.new(0.05, -45, 0.7, 0)
+minus5Btn.Text = "--"
+minus5Btn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+minus5Btn.TextColor3 = Color3.new(1,1,1)
+minus5Btn.Parent = frame
+
+local function AddCorner(object, radius)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, radius or 8)
+	corner.Parent = object
+end
+
+-- Apply to your buttons
+AddCorner(openBtn)
+AddCorner(closeBtn)
+AddCorner(toggleBtn)
+AddCorner(loopBtn)
+AddCorner(plusBtn)
+AddCorner(minusBtn)
+AddCorner(plus5Btn)
+AddCorner(minus5Btn)
+
+-- Optional: Round the frame and speed box too
+AddCorner(frame, 10)
+AddCorner(speedBox, 8)
 
 -- ===== Functions =====
 local function updateSpeed()
@@ -404,5 +442,17 @@ end)
 -- -1 Speed
 minusBtn.MouseButton1Click:Connect(function()
 	TARGET_SPEED = math.clamp(TARGET_SPEED - 1, 1, 200)
+	updateSpeed()
+end)
+
+-- +5 Speed
+plus5Btn.MouseButton1Click:Connect(function()
+	TARGET_SPEED = math.clamp(TARGET_SPEED + 5, 1, 200)
+	updateSpeed()
+end)
+
+-- -5 Speed
+minus5Btn.MouseButton1Click:Connect(function()
+	TARGET_SPEED = math.clamp(TARGET_SPEED - 5, 1, 200)
 	updateSpeed()
 end)
