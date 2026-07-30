@@ -1,5 +1,30 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- [[ MOBILE BUTTON FIX: Changes "Show Rayfield" to "Show Patch Hub" ]] --
+task.spawn(function()
+    local uiContainer = gethui and gethui() or game:GetService("CoreGui")
+    
+    local function updateText(element)
+        if element:IsA("TextLabel") or element:IsA("TextButton") then
+            if element.Text:match("Show Rayfield") then
+                element.Text = string.gsub(element.Text, "Show Rayfield", "Show Patch Hub")
+            end
+            
+            element:GetPropertyChangedSignal("Text"):Connect(function()
+                if element.Text:match("Show Rayfield") then
+                    element.Text = string.gsub(element.Text, "Show Rayfield", "Show Patch Hub")
+                end
+            end)
+        end
+    end
+
+    for _, element in ipairs(uiContainer:GetDescendants()) do
+        updateText(element)
+    end
+    uiContainer.DescendantAdded:Connect(updateText)
+end)
+-- [[ END OF FIX ]] --
+
 local Players    = game:GetService("Players")
 local workspace  = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
