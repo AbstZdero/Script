@@ -95,7 +95,7 @@ local selectedWorldInternal = "World1"
 local worldSettings = {
     {real = "World1", display = "Earth"},
     {real = "ObbyTower", display = "Obby Tower"},
-    {real = "RedTower", display = "Obby Tower"},
+    {real = "RedTower", display = "Red Tower"},
     {real = "World2", display = "Moon"}, {real = "World3", display = "Lava"},
     {real = "World4", display = "Ice"}, {real = "World5", display = "Flower"},
     {real = "World6", display = "Snow"}, {real = "World7", display = "Dark"},
